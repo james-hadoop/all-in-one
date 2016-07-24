@@ -1,25 +1,77 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+ <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.james.allinone</groupId>
-  <artifactId>allinone</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+ <groupId>com.james.allinone</groupId>
+ <artifactId>allinone</artifactId>
+ <version>0.0.1-SNAPSHOT</version>
+ <packaging>jar</packaging>
 
-  <name>allinone</name>
-  <url>http://maven.apache.org</url>
+ <name>allinone</name>
+ <url>http://maven.apache.org</url>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+ <properties>
+  <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  <junit.version>3.8.1</junit.version>
+  <commons-lang3.version>3.4</commons-lang3.version>
+  <commons-email.version>1.4</commons-email.version>
+  <javax.mail.version>1.5.2</javax.mail.version>
+  <httpcore.version>4.4</httpcore.version>
+  <httpcomponents.version>4.5.2</httpcomponents.version>
+  <jsoup.version>1.9.2</jsoup.version>
+ </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+ <dependencies>
+<!--   <dependency>
+   <groupId>org.jsoup</groupId>
+   <artifactId>jsoup</artifactId>
+   <version>${jsoup.version}</version>
+  </dependency> -->
+  <dependency>
+   <groupId>junit</groupId>
+   <artifactId>junit</artifactId>
+   <version>${junit.version}</version>
+   <scope>test</scope>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.commons</groupId>
+   <artifactId>commons-lang3</artifactId>
+   <version>${commons-lang3.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>com.sun.mail</groupId>
+   <artifactId>javax.mail</artifactId>
+   <version>${javax.mail.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.commons</groupId>
+   <artifactId>commons-email</artifactId>
+   <version>${commons-email.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.httpcomponents</groupId>
+   <artifactId>httpcore</artifactId>
+   <version>${httpcore.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.httpcomponents</groupId>
+   <artifactId>httpclient</artifactId>
+   <version>${httpcomponents.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.httpcomponents</groupId>
+   <artifactId>httpclient-win</artifactId>
+   <version>${httpcomponents.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.httpcomponents</groupId>
+   <artifactId>httpclient-cache</artifactId>
+   <version>${httpcomponents.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.httpcomponents</groupId>
+   <artifactId>httpmime</artifactId>
+   <version>${httpcomponents.version}</version>
+  </dependency>
+ </dependencies>
 </project>

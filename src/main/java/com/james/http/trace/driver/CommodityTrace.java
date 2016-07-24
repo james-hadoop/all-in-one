@@ -8,7 +8,6 @@ import java.util.TimerTask;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 
@@ -72,7 +71,7 @@ public class CommodityTrace {
             @SuppressWarnings("resource")
             public void run() {
                 try {
-                    HttpClient httpClient = new DefaultHttpClient();
+                    DefaultHttpClient httpClient = new DefaultHttpClient();
 
                     HttpGet httpGet = new HttpGet(HttpTraceConf.TRACE_URL);
 
