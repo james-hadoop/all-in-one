@@ -1,6 +1,8 @@
 package com.james.common.util;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.james.dataStructure.tree.BinTree.TreeNode;
 
@@ -23,5 +25,17 @@ public class JamesUtil {
             System.out.print(node.data + "\t");
         }
         System.out.println("\n");
+    }
+
+    public static void printMap(Map<String, Object> map) {
+        if (null == map || 0 == map.size()) {
+            return;
+        }
+
+        Set<String> setKey = map.keySet();
+        for (String key : setKey) {
+            System.out.println("key: " + key + " --> " + "value: " + map.get(key));
+        }
+        System.out.println();
     }
 }
