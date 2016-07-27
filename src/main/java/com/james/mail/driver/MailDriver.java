@@ -23,6 +23,7 @@ import javax.mail.Session;
 import javax.mail.Store;
 
 import com.james.common.util.DateUtil;
+import com.james.common.util.JamesUtil;
 import com.james.mail.conf.MailConf;
 
 public class MailDriver {
@@ -60,6 +61,9 @@ public class MailDriver {
                 }
 
                 if (message.getContent() instanceof Multipart) {
+                    String fileName=message.getFileName();
+//                    System.out.println(fileName);
+                    
                     Multipart mp = (Multipart) message.getContent();
                     for (int t = 0; t < 1; t++) {
                         BodyPart part = mp.getBodyPart(t);
@@ -74,7 +78,12 @@ public class MailDriver {
                 }
 
                 String mailContent = bodytext.toString();
-                // System.out.println("mailContext: " + mailContent);
+                System.out.println("mailContext: " + mailContent);
+                
+                if(!mailContent.contains("www.amazon.com")){
+                    continue;
+                }
+                
                 bodytext.delete(0, bodytext.length());
 
                 Map<String, String> mapCodeMoney = extractCodeAndMoney(mailContent);
@@ -86,6 +95,7 @@ public class MailDriver {
             if (null != listMapCodeMoney && 0 < listMapCodeMoney.size()) {
                 write2File(listMapCodeMoney);
             }
+            JamesUtil.printDivider();
         } catch (NoSuchProviderException e) {
             e.printStackTrace();
         } catch (MessagingException e) {
@@ -140,13 +150,13 @@ public class MailDriver {
         }
 
         Map<String, String> ret = new HashMap<String, String>();
-        int end = content.indexOf("$");
+        int end = content.indexOf("Amount:");
         int begin = content.indexOf("Claim code");
-        String code = content.substring(begin + 11, begin + 28);
-        String money = content.substring(end, end + 5);
+        String code = content.substring(begin + 12, begin + 28);
+        String money = content.substring(end + 8,end+13);
 
-        // System.out.println(code + " --> " + code.trim());
-        // System.out.println(money + " --> " + money.trim());
+         System.out.println(code + " --> " + code.trim());
+         System.out.println(money + " --> " + money.trim());
 
         ret.put(code.trim(), money.trim());
 
