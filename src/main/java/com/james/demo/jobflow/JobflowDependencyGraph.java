@@ -18,6 +18,7 @@ public class JobflowDependencyGraph {
         private String name;
         private List<Integer> dependentIds;
         private int currentLayer;
+        private int currentLayerOrder;
         private int currentLayerNodeCount;
 
         public Node(int id, String name, List<Integer> dependentIds) {
@@ -72,6 +73,14 @@ public class JobflowDependencyGraph {
 
         public void setCurrentLayerNodeCount(int currentLayerNodeCount) {
             this.currentLayerNodeCount = currentLayerNodeCount;
+        }
+
+        public int getCurrentLayerOrder() {
+            return currentLayerOrder;
+        }
+
+        public void setCurrentLayerOrder(int currentLayerOrder) {
+            this.currentLayerOrder = currentLayerOrder;
         }
     }
 
@@ -146,10 +155,56 @@ public class JobflowDependencyGraph {
 
             if (mapLayerAndNodeCount.containsKey(nCurrentLayer)) {
                 mapLayerAndNodeCount.put(nCurrentLayer, mapLayerAndNodeCount.get(nCurrentLayer) + 1);
+                node.setCurrentLayerOrder(mapLayerAndNodeCount.get(nCurrentLayer));
             } else {
                 mapLayerAndNodeCount.put(nCurrentLayer, 1);
+                node.setCurrentLayerOrder(1);
             }
         }
+    }
+
+    public String generateEchatsOption(int startX, int startY, int spaceX, int spaceY) {
+        if (0 >= spaceX || 0 >= spaceY || 0 >= startX || 0 >= startY) {
+            return null;
+        }
+
+        if (null == mapNodes || 0 == mapNodes.size()) {
+            return null;
+        }
+
+        StringBuilder sbData = new StringBuilder("data:[");
+        StringBuilder sbLinks = new StringBuilder("links:[");
+
+        List<Integer> listDependentIds = new ArrayList<Integer>();
+
+        Set<Integer> keys = mapNodes.keySet();
+        for (Integer key : keys) {
+            // data
+            Node node = mapNodes.get(key);
+            String name = node.getName();
+            int x = startX + (node.getCurrentLayerOrder() - 1) * spaceX;
+            int y = startY + (node.getCurrentLayer() - 1) * spaceY;
+
+            sbData.append("{name:'" + name + "',x:" + x + ",y:" + y + "},");
+
+            // links
+            listDependentIds = node.getDependentIds();
+            if (1 == listDependentIds.size() && 0 == listDependentIds.get(0)) {
+                continue;
+            }
+
+            for (Integer d : listDependentIds) {
+                sbLinks.append("{source:'" + mapNodes.get(d).getName() + "',target:'" + name + "'},");
+            }
+
+        }
+
+        String header = "animationDurationUpdate:1500,animationEasingUpdate:'quinticInOut',series:[{type:'graph',symbol:'roundRect',layout:'none',symbolSize:50,roam:true,label:{normal:{show:true}},edgeSymbol:['rectangle','arrow'],edgeSymbolSize:[4,10],edgeLabel:{normal:{textStyle:{fontSize:20}}}";
+        String data = sbData.substring(0, sbData.length() - 1) + "]";
+        String links = sbLinks.substring(0, sbLinks.length() - 1) + "]";
+        String tail = "lineStyle:{normal:{opacity:0.9,width:2,curveness:0}}}]}";
+
+        return header + "," + data + "," + links + "," + tail;
     }
 
     public Map<Integer, Integer> getMapLayerAndNodeCount() {
@@ -189,38 +244,47 @@ public class JobflowDependencyGraph {
         TaskJobFlowDetailInfo j1 = new TaskJobFlowDetailInfo();
         j1.setJobId(1);
         j1.setParentJobId("0");
+        j1.setJobName("节点1");
 
         TaskJobFlowDetailInfo j2 = new TaskJobFlowDetailInfo();
         j2.setJobId(2);
         j2.setParentJobId("0");
+        j2.setJobName("节点2");
 
         TaskJobFlowDetailInfo j3 = new TaskJobFlowDetailInfo();
         j3.setJobId(3);
         j3.setParentJobId("1");
+        j3.setJobName("节点3");
 
         TaskJobFlowDetailInfo j4 = new TaskJobFlowDetailInfo();
         j4.setJobId(4);
         j4.setParentJobId("1");
+        j4.setJobName("节点4");
 
         TaskJobFlowDetailInfo j5 = new TaskJobFlowDetailInfo();
         j5.setJobId(5);
         j5.setParentJobId("2");
+        j5.setJobName("节点5");
 
         TaskJobFlowDetailInfo j6 = new TaskJobFlowDetailInfo();
         j6.setJobId(6);
         j6.setParentJobId("2");
+        j6.setJobName("节点6");
 
         TaskJobFlowDetailInfo j7 = new TaskJobFlowDetailInfo();
         j7.setJobId(7);
         j7.setParentJobId("3|4|5");
+        j7.setJobName("节点7");
 
         TaskJobFlowDetailInfo j8 = new TaskJobFlowDetailInfo();
         j8.setJobId(8);
         j8.setParentJobId("6");
+        j8.setJobName("节点8");
 
         TaskJobFlowDetailInfo j9 = new TaskJobFlowDetailInfo();
         j9.setJobId(9);
-        j9.setParentJobId("2|6");
+        j9.setParentJobId("1|6");
+        j9.setJobName("节点9");
 
         List<Integer> parentIdList = new ArrayList<Integer>();
         parentIdList.add(0);
@@ -245,9 +309,11 @@ public class JobflowDependencyGraph {
         for (Integer key : keys) {
             Node node = mapNode.get(key);
 
-            System.out.print("  " + key + "(" + node.getCurrentLayer() + ","
-                    + g.getMapLayerAndNodeCount().get(node.getCurrentLayer()) + ")");
+            System.out.print("  " + key + ": " + node.getName() + "(" + node.getCurrentLayer() + "," + node.getCurrentLayerOrder() + ")");
         }
-        System.out.println();
+        System.out.println("\n\n");
+
+        String option = g.generateEchatsOption(300, 100, 50, 50);
+        System.out.println("option:\n" + option);
     }
 }
