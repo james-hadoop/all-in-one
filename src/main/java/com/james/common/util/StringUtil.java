@@ -31,7 +31,7 @@ public class StringUtil {
         return map;
     }
 
-    public static String string2Map(Map<String, Object> map) {
+    public static String map2String(Map<String, Object> map) {
         if (null == map || 0 == map.size()) {
             return null;
         }
@@ -57,7 +57,7 @@ public class StringUtil {
         
         map = StringUtil.string2Map(t1);
         JamesUtil.printMap(map);
-        text=string2Map(map);
+        text=map2String(map);
         System.out.println(text);
         map = StringUtil.string2Map(text);
         JamesUtil.printMap(map);
@@ -65,7 +65,7 @@ public class StringUtil {
 
         map = StringUtil.string2Map(t2);
         JamesUtil.printMap(map);
-        text=string2Map(map);
+        text=map2String(map);
         System.out.println(text);
         map = StringUtil.string2Map(text);
         JamesUtil.printMap(map);
@@ -73,7 +73,7 @@ public class StringUtil {
 
         map = StringUtil.string2Map(t3);
         JamesUtil.printMap(map);
-        text=string2Map(map);
+        text=map2String(map);
         System.out.println(text);
         map = StringUtil.string2Map(text);
         JamesUtil.printMap(map);
@@ -81,10 +81,15 @@ public class StringUtil {
 
         map = StringUtil.string2Map(t4);
         JamesUtil.printMap(map);
-        text=string2Map(map);
+        text=map2String(map);
         System.out.println(text);
         map = StringUtil.string2Map(text);
         JamesUtil.printMap(map);
+        JamesUtil.printDivider();
+        
+        String[] arr1 = t4.split("|");
+        System.out.println(arr1.length);
+        System.out.println(arr1[0]);
         JamesUtil.printDivider();
     }
 }
