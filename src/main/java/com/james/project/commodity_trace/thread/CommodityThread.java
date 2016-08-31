@@ -11,6 +11,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 import com.james.common.service.IEmailService;
 import com.james.common.service.impl.EmailServiceImpl;
@@ -53,10 +54,10 @@ public class CommodityThread extends Thread {
                     HttpGet httpGet = new HttpGet(url);
 
                     HttpResponse response = httpClient.execute(httpGet);
-                    // System.out.println(response.getStatusLine().getStatusCode());
+                    System.out.println(response.getStatusLine().getStatusCode());
 
                     HttpEntity httpEntity = response.getEntity();
-                    // System.out.println(EntityUtils.toString(httpEntity));
+                    System.out.println(EntityUtils.toString(httpEntity));
 
                     InputStream is = httpEntity.getContent();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -66,7 +67,7 @@ public class CommodityThread extends Thread {
 
                     while (null != (line = reader.readLine())) {
                         if (line.contains(unit) && line.contains(config.getPriceMark())) {
-                            // System.out.println(line);
+                            System.out.println(line);
 
                             price = interceptPrice(line, unit, config.getPriceEndMark());
 
