@@ -1,14 +1,6 @@
 package com.james.demo.http;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilterWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
@@ -32,59 +24,30 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 public class HttpSSLTest2 {
-    private final static String url = "https://www.amazon.de/dp/B00BSNACBU/ref=cm_sw_r_other_apa_I2ZTxb2HH0V4H?from=singlemessage&isappinstalled=0";
+    private final static String url = "https://www.amazon.de/Aptamil-Kindermilch-Probiergr%C3%B6%C3%9Fe-Jahr-Pack/dp/B00BSNACBU/ref=sr_1_2?ie=UTF8&qid=1472697117&sr=8-2&keywords=aptamil++1%2B";
 
     public static void main(String[] args) throws URISyntaxException, ClientProtocolException, IOException {
         CloseableHttpClient httpClient = createSSLClientDefault();
         HttpGet get = new HttpGet();
         get.setURI(new URI(url));
         CloseableHttpResponse response = httpClient.execute(get);
-        System.out.println(response.getStatusLine().getStatusCode());
+        //System.out.println(response.getStatusLine().getStatusCode());
 
         HttpEntity httpEntity = response.getEntity();
-        String responseContent=EntityUtils.toString(httpEntity);
-        System.out.println(responseContent);
+        String responseContent = EntityUtils.toString(httpEntity);
+        // System.out.println(responseContent);
 
-        InputStream is = httpEntity.getContent();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        Document doc = Jsoup.parse(responseContent);
 
-        StringBuilder sb = new StringBuilder();
-        try {
-            String line = null;
-            while (null != (line = reader.readLine())) {
-                // System.out.println(line);
-                if (line.contains("a-color-price")) {
-                    sb.append(line);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-//            System.out.println();
-            
-            File file =new File("clawer.get");
-            file.createNewFile();
-            PrintWriter pw=new PrintWriter(file);
-            pw.write(sb.toString());
-            pw.close();
-            
-            Document doc = Jsoup.parse(responseContent);
-            
-            Element infoTable = doc.getElementsByAttributeValue("class", "a-color-price").first();
-            System.out.println("jsoup is :" + infoTable);
-            System.out.println("jsoup is :" + infoTable.text().trim());
-
-            reader.close();
-            is.close();
-        }
+        Element infoTable = doc.getElementsByAttributeValue("class", "a-color-price").first();
+        System.out.println("jsoup is :" + infoTable.text().trim());
     }
 
     public static CloseableHttpClient createSSLClientDefault() {
         try {
             SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, new TrustStrategy() {
                 @Override
-                public boolean isTrusted(java.security.cert.X509Certificate[] arg0, String arg1)
-                        throws java.security.cert.CertificateException {
+                public boolean isTrusted(java.security.cert.X509Certificate[] arg0, String arg1) throws java.security.cert.CertificateException {
                     return true;
                 }
             }).build();

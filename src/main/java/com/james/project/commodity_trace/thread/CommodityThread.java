@@ -1,24 +1,26 @@
 package com.james.project.commodity_trace.thread;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.net.URI;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
+import com.james.common.config.CommonConfig;
 import com.james.common.service.IEmailService;
 import com.james.common.service.impl.EmailServiceImpl;
+import com.james.common.util.HttpUtil;
 import com.james.project.commodity_trace.config.CommodityTraceConfig;
 
-@SuppressWarnings("deprecation")
 public class CommodityThread extends Thread {
+    private CommonConfig commonConfig =CommonConfig.getInstance();
     private CommodityTraceConfig config = CommodityTraceConfig.getInstance();
 
     private String url;
@@ -37,7 +39,7 @@ public class CommodityThread extends Thread {
 
     private void startTraceTimer() {
         // services
-        final IEmailService emailService = new EmailServiceImpl();
+        final IEmailService emailService = new EmailServiceImpl(commonConfig.getMailFrom(), commonConfig.getMailHost(), commonConfig.getMailUserName(), commonConfig.getMailPassword(), commonConfig.getMailPort());
 
         // timer
         Timer myTimer = new Timer();
@@ -46,34 +48,25 @@ public class CommodityThread extends Thread {
             // cycle flag
             boolean bCycle = true;
 
-            @SuppressWarnings("resource")
             public void run() {
                 try {
-                    HttpClient httpClient = new DefaultHttpClient();
-
-                    HttpGet httpGet = new HttpGet(url);
-
-                    HttpResponse response = httpClient.execute(httpGet);
-                    System.out.println(response.getStatusLine().getStatusCode());
+                    CloseableHttpClient httpClient = HttpUtil.createSSLClientDefault();
+                    HttpGet get = new HttpGet();
+                    get.setURI(new URI(url));
+                    CloseableHttpResponse response = httpClient.execute(get);
+                    // System.out.println(response.getStatusLine().getStatusCode());
 
                     HttpEntity httpEntity = response.getEntity();
-                    System.out.println(EntityUtils.toString(httpEntity));
+                    String responseContent = EntityUtils.toString(httpEntity);
+                    // System.out.println(responseContent);
 
-                    InputStream is = httpEntity.getContent();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                    String line = null;
-                    String price = null;
+                    Document doc = Jsoup.parse(responseContent);
+
+                    Element element = doc.getElementsByAttributeValue("class", "a-color-price").first();
+                    String price = element.text().trim();
+                    price = interceptPrice(price, unit);
+
                     double doublePrice = 0.0;
-
-                    while (null != (line = reader.readLine())) {
-                        if (line.contains(unit) && line.contains(config.getPriceMark())) {
-                            System.out.println(line);
-
-                            price = interceptPrice(line, unit, config.getPriceEndMark());
-
-                            break;
-                        }
-                    }
 
                     doublePrice = convertPriceFromStringToDouble(price, config.getComma(), config.getDot());
 
@@ -81,8 +74,7 @@ public class CommodityThread extends Thread {
                         System.out.println(doublePrice + " : " + threshold + " --> ALERT");
 
                         if (true == bCycle) {
-                            emailService.sendEmail(mailList, "Commodity Trace", "<h3>Commodity:<br></h3><a href=" + url
-                                    + ">" + url + "</a><br>  current price is= " + doublePrice
+                            emailService.sendEmail(mailList, "Commodity Trace", "<h3>Commodity:<br></h3><a href=" + url + ">" + url + "</a><br>  current price is= " + doublePrice
                                     + ", which is lower than threshold price=" + threshold);
                         }
 
@@ -97,19 +89,17 @@ public class CommodityThread extends Thread {
         }, config.getInterval() + 1, config.getInterval() * 60 * 1000);
     }
 
-    private String interceptPrice(String priceHtml, String priceMark, String priceEndMark) {
-        if (null == priceHtml || 0 == priceHtml.length() || null == priceMark || 0 == priceMark.length()
-                || null == priceEndMark || 0 == priceEndMark.length()) {
+    private String interceptPrice(String priceHtml, String priceMark) {
+        if (null == priceHtml || 0 == priceHtml.length() || null == priceMark || 0 == priceMark.length()) {
             return null;
         }
 
         int indexBegin = priceHtml.indexOf(priceMark);
-        int indexEnd = priceHtml.indexOf(priceEndMark);
-        if (-1 == indexBegin || -1 == indexEnd) {
+        if (-1 == indexBegin) {
             return null;
         }
 
-        String price = priceHtml.substring(indexBegin + 4, indexEnd);
+        String price = priceHtml.substring(indexBegin + 4, priceHtml.length());
 
         return price;
     }

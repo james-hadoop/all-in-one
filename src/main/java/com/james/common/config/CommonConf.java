@@ -1,4 +1,4 @@
-package com.james.common.conf;
+package com.james.common.config;
 
 public class CommonConf {
     /*
