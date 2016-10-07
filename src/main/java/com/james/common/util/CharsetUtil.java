@@ -3,7 +3,7 @@ package com.james.common.util;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 
-public final class CharsetTools {
+public final class CharsetUtil {
     public static final Charset GB2312 = Charset.forName("GB2312");
     public static final Charset GBK = Charset.forName("GBK");
     public static final Charset GB18030 = Charset.forName("GB18030");
@@ -40,6 +40,6 @@ public final class CharsetTools {
         return new IllegalStateException(charsetName + ": " + e);
     }
 
-    private CharsetTools() {
+    private CharsetUtil() {
     }
 }

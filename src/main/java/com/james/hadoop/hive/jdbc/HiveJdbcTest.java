@@ -1,4 +1,4 @@
-package com.james.demo.hive;
+package com.james.hadoop.hive.jdbc;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class HiveJdbcTest2 {
+public class HiveJdbcTest {
     private static final String HIVE_JDBC_DRIVER = "org.apache.hive.jdbc.HiveDriver";
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {

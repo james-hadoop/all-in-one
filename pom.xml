@@ -29,6 +29,10 @@
   <lucene.version>6.2.0</lucene.version>
   <jedis.version>2.8.1</jedis.version>
   <zookeeper.version>3.4.9</zookeeper.version>
+  <spring-kafka.version>1.1.1.RELEASE</spring-kafka.version>
+  <hadoop.version>2.6.4</hadoop.version>
+  <hive.version>2.1.0</hive.version>
+  <quartz.version>2.2.1</quartz.version>
  </properties>
 
  <dependencies>
@@ -118,20 +122,144 @@
    <artifactId>sigar</artifactId>
    <version>${sigar.version}</version>
   </dependency>
-    <dependency>
+  <dependency>
    <groupId>org.apache.lucene</groupId>
    <artifactId>lucene-core</artifactId>
    <version>${lucene.version}</version>
   </dependency>
   <dependency>
-    <groupId>redis.clients</groupId>
-    <artifactId>jedis</artifactId>
+   <groupId>redis.clients</groupId>
+   <artifactId>jedis</artifactId>
    <version>${jedis.version}</version>
   </dependency>
-    <dependency>
+  <dependency>
    <groupId>org.apache.zookeeper</groupId>
    <artifactId>zookeeper</artifactId>
    <version>${zookeeper.version}</version>
   </dependency>
+  <dependency>
+   <groupId>org.springframework.kafka</groupId>
+   <artifactId>spring-kafka</artifactId>
+   <version>${spring-kafka.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.hadoop</groupId>
+   <artifactId>hadoop-hdfs</artifactId>
+   <version>${hadoop.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.hadoop</groupId>
+   <artifactId>hadoop-mapreduce-client-core</artifactId>
+   <version>${hadoop.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.quartz-scheduler</groupId>
+   <artifactId>quartz</artifactId>
+   <version>${quartz.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>org.quartz-scheduler</groupId>
+   <artifactId>quartz-jobs</artifactId>
+   <version>${quartz.version}</version>
+  </dependency>
+  <dependency>
+   <groupId>commons-httpclient</groupId>
+   <artifactId>commons-httpclient</artifactId>
+   <version>3.1</version>
+   <scope>compile</scope>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.httpcomponents</groupId>
+   <artifactId>httpclient</artifactId>
+   <version>4.5</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.httpcomponents</groupId>
+   <artifactId>httpclient-cache</artifactId>
+   <version>4.5</version>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.httpcomponents</groupId>
+   <artifactId>httpclient-win</artifactId>
+   <version>4.5</version>
+  </dependency>
+          <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-jdbc</artifactId>
+            <version>${hive.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-service</artifactId>
+            <version>${hive.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
+            <version>${hive.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-common</artifactId>
+            <version>${hive.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-metastore</artifactId>
+            <version>${hive.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-orc</artifactId>
+            <version>2.0.0</version>
+        </dependency>
  </dependencies>
+
+
+
+ <build>
+  <finalName>datamanager</finalName>
+  <plugins>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-assembly-plugin</artifactId>
+    <version>2.4</version>
+    <configuration>
+     <!-- 应用名（最后压缩包的名字） -->
+
+     <appendAssemblyId>false</appendAssemblyId>
+     <descriptors>
+      <descriptor>assembly.xml</descriptor>
+     </descriptors>
+    </configuration>
+   </plugin>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>2.5.1</version>
+    <!-- Maven默认的编译级别是1.5 , 目前此项目中使用了1.7才有的语法, 固需要做以下配置 -->
+    <configuration>
+     <source>1.8</source>
+     <target>1.8</target>
+     <encoding>UTF-8</encoding>
+    </configuration>
+   </plugin>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>2.18.1</version>
+    <configuration>
+     <skipTests>true</skipTests>
+    </configuration>
+   </plugin>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <version>2.4</version>
+    <configuration>
+     <outputDirectory>target/allinone/</outputDirectory>
+    </configuration>
+   </plugin>
+  </plugins>
+ </build>
 </project>
