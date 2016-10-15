@@ -45,7 +45,7 @@ public class CommonConfig {
         this.mailFrom = props.getProperty("common.mail_from", "");
         this.mailHost = props.getProperty("common.mail_host", "");
         this.mailUserName = props.getProperty("common.mail_username", "");
-        this.mailPassword = props.getProperty("ames@Fangdd2016", "");
+        this.mailPassword = props.getProperty("common.mail_password", "");
         this.mailPort = props.getProperty("common.mail_port", "");
     }
 
