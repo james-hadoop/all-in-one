@@ -23,21 +23,13 @@ import com.james.common.util.entity.HiveDataTable;
 public class DbInfoUtil {
     private static final Logger logger = LoggerFactory.getLogger(DbInfoUtil.class);
 
-    // private static final String MYSQL_DB_DRIVER = "com.mysql.jdbc.Driver";
-    // private static final String VERTICA_DB_DRIVER =
-    // "com.vertica.jdbc.Driver";
-    // private static final String HIVE_META_DB_URL =
-    // "jdbc:mysql://10.12.21.146:3306/hive?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&autoReconnect=true";
-    // private static final String HIVE_META_DB_USERNAME = "root";
-    // private static final String HIVE_META_DB_PASSWORD = "EYpmo5KSt9I=";
-
     private static final String MYSQL_DB_DRIVER = "";
     private static final String VERTICA_DB_DRIVER = "";
     private static final String HIVE_META_DB_URL = "";
     private static final String HIVE_META_DB_USERNAME = "";
     private static final String HIVE_META_DB_PASSWORD = "";
 
-    private static final byte[] key = "fdd_esf_data".getBytes();
+    private static final byte[] key = "my_encrypt_key".getBytes();
 
     public static List<DataVerticaSchema> getVerticaSchemaList(DataVerticaDatabases db, Long schemaId) throws Exception {
         List<DataVerticaSchema> listDataVerticaSchema = new ArrayList<DataVerticaSchema>();

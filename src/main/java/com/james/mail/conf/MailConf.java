@@ -9,5 +9,5 @@ public class MailConf {
     public static final String HOST = "pop.126.com";
     public static final int PORT = 995;
     public static final String USERNAME = "akajames@126.com";
-    public static final String PASSWORD = "jamesFangdd2016";
+    public static final String PASSWORD = "";
 }
