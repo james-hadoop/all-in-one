@@ -416,5 +416,4 @@ public class DbInfoUtil {
         }
         return columns;
     }
-
 }
