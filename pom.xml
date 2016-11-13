@@ -12,7 +12,7 @@
 
  <properties>
   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  <junit.version>3.8.1</junit.version>
+  <junit.version>4.11</junit.version>
   <commons-lang3.version>3.4</commons-lang3.version>
   <log4j.version>1.2.17</log4j.version>
   <slf4j-log4j12.version>1.6.6</slf4j-log4j12.version>
@@ -34,6 +34,7 @@
   <quartz.version>2.2.1</quartz.version>
   <kafka.version>0.10.1.0</kafka.version>
   <hive.version>2.1.0</hive.version>
+  <jmockit.version>1.28</jmockit.version>
  </properties>
 
  <dependencies>
@@ -227,10 +228,12 @@
    <artifactId>kafka-clients</artifactId>
    <version>${kafka.version}</version>
   </dependency>
-<!--   <dependency> 
-   <groupId>org.apache.hive</groupId>
-   <artifactId>hive</artifactId>
-   <version>${hive.version}</version>
+  <!-- <dependency> <groupId>org.apache.hive</groupId> <artifactId>hive</artifactId> <version>${hive.version}</version> </dependency> -->
+<!--   <dependency>
+   <groupId>org.jmockit</groupId>
+   <artifactId>jmockit</artifactId>
+   <version>${jmockit.version}</version>
+   <scope>test</scope>
   </dependency> -->
 
 
