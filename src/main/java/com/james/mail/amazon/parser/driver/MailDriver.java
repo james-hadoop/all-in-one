@@ -1,4 +1,4 @@
-package com.james.mail.driver;
+package com.james.mail.amazon.parser.driver;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,12 +24,39 @@ import javax.mail.Store;
 
 import com.james.common.util.DateUtil;
 import com.james.common.util.JamesUtil;
-import com.james.mail.conf.MailConf;
+import com.james.mail.amazon.parser.conf.MailConf;
 
+/**
+ * This parser is used to parse the Amazon gift cards in the 126 mailbox
+ * 
+ * @author james
+ *
+ */
 public class MailDriver {
+    static Map<String, String> websiteToCountry = new HashMap<String, String>();
+
+    static String[] codeUpside;
+    static String[] codeDownside;
+
     public static void main(String[] args) throws Exception {
         List<Map<String, String>> listMapCodeMoney = new ArrayList<Map<String, String>>();
 
+        /*
+         * code position mapping
+         */
+        codeUpside = new String(MailConf.CODE_UPSIDE).split(",");
+        codeDownside = new String(MailConf.CODE_DOWNSIDE).split(",");
+
+        for (String website : codeUpside) {
+            websiteToCountry.put(website, website.substring(website.indexOf(".") + 1, website.length()));
+        }
+        for (String website : codeDownside) {
+            websiteToCountry.put(website, website.substring(website.indexOf(".") + 1, website.length()));
+        }
+
+        /*
+         * mailbox properties
+         */
         Properties props = new Properties();
         props.put("mail.pop3.ssl.enable", MailConf.IS_SSL);
         props.put("mail.pop3.host", MailConf.HOST);
@@ -48,7 +75,7 @@ public class MailDriver {
 
             Message[] arrMessage = folder.getMessages();
             List<Message> listMessage = Arrays.asList(arrMessage);
-            List<Message> listLatest100Message = listMessage.subList(listMessage.size() - 200, listMessage.size());
+            List<Message> listLatest100Message = listMessage.subList(listMessage.size() - 1, listMessage.size());
 
             String strYesterday = DateUtil.getLastNDay(1);
             StringBuffer bodytext = new StringBuffer();
@@ -61,9 +88,9 @@ public class MailDriver {
                 }
 
                 if (message.getContent() instanceof Multipart) {
-                    String fileName=message.getFileName();
-//                    System.out.println(fileName);
-                    
+                    String fileName = message.getFileName();
+                    // System.out.println(fileName);
+
                     Multipart mp = (Multipart) message.getContent();
                     for (int t = 0; t < 1; t++) {
                         BodyPart part = mp.getBodyPart(t);
@@ -78,12 +105,14 @@ public class MailDriver {
                 }
 
                 String mailContent = bodytext.toString();
+                // System.out.println("mailContext: " + mailContent);
+                mailContent = mailContent.substring(0, 1024);
                 System.out.println("mailContext: " + mailContent);
-                
-                if(!mailContent.contains("www.amazon.com")){
+
+                if (!mailContent.contains("Amazon") || !mailContent.contains("amazon")) {
                     continue;
                 }
-                
+
                 bodytext.delete(0, bodytext.length());
 
                 Map<String, String> mapCodeMoney = extractCodeAndMoney(mailContent);
@@ -150,17 +179,53 @@ public class MailDriver {
         }
 
         Map<String, String> ret = new HashMap<String, String>();
-        int end = content.indexOf("Amount:");
-        int begin = content.indexOf("Claim code");
-        String code = content.substring(begin + 12, begin + 28);
-        String money = content.substring(end + 8,end+13);
 
-         System.out.println(code + " --> " + code.trim());
-         System.out.println(money + " --> " + money.trim());
+        String type = convertToStandardWebsite(content, codeUpside, codeDownside);
 
-        ret.put(code.trim(), money.trim());
+        if ("fr" == type) {
+            // int end = content.indexOf("Amount:");
+            // int begin = content.indexOf("Claim code");
+
+            int end = content.indexOf("euro");
+            int begin = content.indexOf("Code chèque-cadeau");
+            String code = content.substring(begin + 40, begin + 80);
+            String money = content.substring(end - 7, end - 2);
+
+            System.out.println("code--> " + code.trim());
+            System.out.println("money --> " + money.trim());
+            System.out.println("country --> " + type);
+
+            ret.put(code.trim(), money.trim());
+        } else {
+            int end = content.indexOf("euro");
+            int begin = content.indexOf("Code chèque-cadeau");
+            String code = content.substring(begin + 40, begin + 80);
+            String money = content.substring(end - 7, end - 2);
+
+            System.out.println("code--> " + code.trim());
+            System.out.println("money --> " + money.trim());
+            System.out.println("country --> " + type);
+
+            ret.put(code.trim(), money.trim());
+        }
 
         return ret;
+    }
+
+    private static String convertToStandardWebsite(String content, String[] codeUpside, String[] codeDownside) {
+        for (String website : codeUpside) {
+            if (content.contains(website)) {
+                return websiteToCountry.get(website);
+            }
+        }
+
+        for (String website : codeDownside) {
+            if (content.contains(website)) {
+                return websiteToCountry.get(website);
+            }
+        }
+
+        return "";
     }
 
     private static void write2File(List<Map<String, String>> listMapCodeMoney) throws IOException {

@@ -26,7 +26,8 @@ public class DataUtil {
     private static final String KEY_ALGORITHM = "DES";
     private static final String CIPHER_ALGORITHM = "DES/ECB/PKCS5Padding";
 
-    private static char hexdigits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    private static char hexdigits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+            'f' };
 
     private static final String KEY_DIVIDER = "\\|";
     private static final String KEY_DIVIDER_FOR_AGGREGATION = "|";
@@ -335,5 +336,23 @@ public class DataUtil {
         }
 
         return sb.substring(0, sb.length() - 1);
+    }
+
+    /**
+     * Compute batch count according to total thread count and batch size
+     * 
+     * @param total
+     * @param batchCount
+     * @return
+     */
+    public static int getBatchSize(int total, int batchCount) {
+        int a = total / batchCount;
+        int b = total % batchCount;
+
+        if (0 == b) {
+            return a;
+        } else {
+            return a + 1;
+        }
     }
 }
