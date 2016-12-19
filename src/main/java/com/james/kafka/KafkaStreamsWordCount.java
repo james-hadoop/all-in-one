@@ -20,7 +20,7 @@ public class KafkaStreamsWordCount {
 
         KStreamBuilder builder = new KStreamBuilder();
         builder.stream("test0").mapValues(value -> value).to("test1");
-
+        
         KafkaStreams streams = new KafkaStreams(builder, config);
         streams.start();
     }
