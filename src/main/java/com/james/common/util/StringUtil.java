@@ -93,14 +93,21 @@ public class StringUtil {
     public static boolean hasBinaryContent(String contentType) {
         String typeStr = (contentType != null) ? contentType.toLowerCase() : "";
 
-        return typeStr.contains("image") || typeStr.contains("audio") || typeStr.contains("video")
-                || typeStr.contains("application");
+        return typeStr.contains("image") || typeStr.contains("audio") || typeStr.contains("video") || typeStr.contains("application");
     }
 
     public static boolean hasPlainTextContent(String contentType) {
         String typeStr = (contentType != null) ? contentType.toLowerCase() : "";
 
         return typeStr.contains("text") && !typeStr.contains("html");
+    }
+
+    public static String multiSpace2SingleSpace(String str) {
+        if (null == str || 0 == str.length()) {
+            return str;
+        }
+
+        return str.replaceAll("[' ']+", " ");
     }
 
     public static void main(String[] args) {
@@ -147,6 +154,11 @@ public class StringUtil {
         String[] arr1 = t4.split("|");
         System.out.println(arr1.length);
         System.out.println(arr1[0]);
+        JamesUtil.printDivider();
+
+        String strMultiSpace = "a  b c   d";
+        String strSingleSpace = strMultiSpace.replaceAll("[' ']+", " ");
+        System.out.println("strMultiSpace=" + strMultiSpace + "\t" + "strSingleSpace=" + strSingleSpace);
         JamesUtil.printDivider();
     }
 }
