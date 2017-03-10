@@ -6,8 +6,10 @@ public class HeapSort {
         int[] data = { 21, 30, 49, 30, 21, 16, 9 };
         System.out.println("排序之前：\n\t" + java.util.Arrays.toString(data));
 
+        System.out.println();
         heapSort(data);
 
+        System.out.println();
         System.out.println("排序之后：\n\t" + java.util.Arrays.toString(data));
     }
 
@@ -31,6 +33,7 @@ public class HeapSort {
             while (k * 2 + 1 <= lastIndex) {
                 // k节点左子节点的索引
                 int biggerIndex = 2 * k + 1;
+                
                 // 如果biggerIndex小于lastIndex，即biggerIndex+1代表k节点的右子节点存在
                 if (biggerIndex < lastIndex) {
                     // 如果右子节点的值较大
@@ -60,5 +63,4 @@ public class HeapSort {
         data[i] = data[j];
         data[j] = tmp;
     }
-
 }
