@@ -18,7 +18,7 @@ import org.elasticsearch.client.RestClientBuilder;
 
 public class RestClientDemo1 {
     public static void main(String[] args) throws IOException {
-        RestClient restClient = RestClient.builder(new HttpHost("10.12.21.132", 9200)).setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
+        RestClient restClient = RestClient.builder(new HttpHost("JamesUbuntu", 9200)).setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
             @Override
             public RequestConfig.Builder customizeRequestConfig(RequestConfig.Builder requestConfigBuilder) {
                 return requestConfigBuilder.setConnectTimeout(5000).setSocketTimeout(60000);
