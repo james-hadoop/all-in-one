@@ -11,9 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-public class HiveJdbcTest2 {
+public class HiveJdbcTest3 {
     private static final String HIVE_JDBC_DRIVER = "org.apache.hive.jdbc.HiveDriver";
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
@@ -27,47 +26,12 @@ public class HiveJdbcTest2 {
 
         String tableName = "u";
 
-        // show tables
-        sql = "show tables '" + tableName + "'";
-        System.out.println("Running:\n\t" + sql);
-        rs = pstmt.executeQuery(sql);
-        if (rs.next()) {
-            System.out.println(rs.getString(1));
-        }
-        printDivider();
-
-        // describe table
-        sql = "describe " + tableName;
-        System.out.println("Running:\n\t" + sql);
-        rs = pstmt.executeQuery(sql);
-        while (rs.next()) {
-            System.out.println(rs.getString(1) + "\t" + rs.getString(2));
-        }
-        printDivider();
-
         // select * query
         sql = "select * from " + tableName;
         System.out.println("Running:\n\t" + sql);
         rs = pstmt.executeQuery(sql);
         while (rs.next()) {
-            System.out.println(rs.getInt("id") + "\t" + rs.getString("name") + "\t" + rs.getInt("age") + "\t"
-                    + rs.getString("dt"));
-        }
-        printDivider();
-
-        sql = "select count(1) from " + tableName;
-        System.out.println("Running:\n\t" + sql);
-        rs = pstmt.executeQuery(sql);
-        while (rs.next()) {
-            System.out.println(rs.getString(1));
-        }
-        printDivider();
-
-        // getTableFields()
-        Map<String, String> mapTableFields = getTableFields(conn, tableName);
-        Set<String> setString = mapTableFields.keySet();
-        for (String key : setString) {
-            System.out.println(key + " -> " + mapTableFields.get(key));
+            System.out.println(rs.getInt("id") + "\t" + rs.getString("name") + "\t" + rs.getInt("age") + "\t" + rs.getString("dt"));
         }
         printDivider();
 
@@ -119,6 +83,69 @@ public class HiveJdbcTest2 {
             System.out.println();
         }
         printDivider();
+
+        listListRows.clear();
+        listListRows = null;
+        listListRows = queryDataFromHive(conn, sql);
+
+        for (List<Object> oneRow : listListRows) {
+            for (Object column : oneRow) {
+                System.out.print(column + "\t");
+            }
+            System.out.println();
+        }
+        printDivider();
+    }
+
+    private static List<List<Object>> queryDataFromHive(Connection conn, String sql) throws SQLException {
+        if (null == conn || null == sql || 0 == sql.length()) {
+            return null;
+        }
+
+        System.out.println("sql is: " + sql);
+
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        ResultSet rs = pstmt.executeQuery();
+
+        ResultSetMetaData resultMetaData = rs.getMetaData();
+
+        int nSize = resultMetaData.getColumnCount();
+
+        List<List<Object>> listListRows = new ArrayList<List<Object>>();
+        while (rs.next()) {
+            List<Object> listOneRow = new ArrayList<Object>();
+            for (int i = 1; i < nSize; i++) {
+                switch (resultMetaData.getColumnType(i)) {
+                case Types.VARCHAR:
+                    listOneRow.add(rs.getString(resultMetaData.getColumnName(i)));
+                    break;
+                case Types.INTEGER:
+                    listOneRow.add(new Integer(rs.getInt(resultMetaData.getColumnName(i))));
+                    break;
+                case Types.BIGINT:
+                    listOneRow.add(new Long(rs.getLong(resultMetaData.getColumnName(i))));
+                    break;
+                case Types.TIMESTAMP:
+                    listOneRow.add(rs.getDate(resultMetaData.getColumnName(i)));
+                    break;
+                case Types.DOUBLE:
+                    listOneRow.add(rs.getDouble(resultMetaData.getColumnName(i)));
+                    break;
+                case Types.FLOAT:
+                    listOneRow.add(rs.getFloat(resultMetaData.getColumnName(i)));
+                    break;
+                case Types.CLOB:
+                    listOneRow.add(rs.getBlob(resultMetaData.getColumnName(i)));
+                    break;
+                default:
+                    listOneRow.add("unknown data type");
+                }
+            }
+            listListRows.add(listOneRow);
+        }
+
+        return listListRows;
     }
 
     private static void printDivider() {
@@ -183,8 +210,7 @@ public class HiveJdbcTest2 {
         return true;
     }
 
-    private Map<String, String> parseTableFields(String tableFields, String dividerAmongFields,
-            String dividerBetweenFieldAndType) {
+    private Map<String, String> parseTableFields(String tableFields, String dividerAmongFields, String dividerBetweenFieldAndType) {
         if (null == tableFields || 0 == tableFields.length()) {
             return null;
         }
