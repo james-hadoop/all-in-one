@@ -25,7 +25,7 @@ public class HiveJdbcTest4 {
         ResultSetMetaData resultMetaData = null;
         PreparedStatement pstmt = conn.prepareStatement(sql);
 
-        String tableName = "u";
+        String tableName = "employees2;";
 
         // read data from Hive table
         sql = "select * from " + tableName;
