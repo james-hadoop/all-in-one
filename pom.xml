@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.james.allinone</groupId>
@@ -64,13 +63,13 @@
   </properties>
 
   <dependencies>
-    <dependency>
+<!--     <dependency>
       <groupId>jdk.tools</groupId>
       <artifactId>jdk.tools</artifactId>
       <version>1.8</version>
       <scope>system</scope>
       <systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
-    </dependency>
+    </dependency> -->
 
     <dependency>
       <groupId>io.netty</groupId>
@@ -183,6 +182,12 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>jdk.tools</groupId>
+          <artifactId>jdk.tools</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
@@ -312,6 +317,12 @@
       <groupId>org.apache.hive</groupId>
       <artifactId>hive-metastore</artifactId>
       <version>${hive.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>jdk.tools</groupId>
+          <artifactId>jdk.tools</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jmockit</groupId>
@@ -379,9 +390,8 @@
       <version>2.8.1</version>
     </dependency>
 
-    <!-- <dependency> <groupId>org.apache.hbase</groupId> <artifactId>hbase</artifactId> 
-      <version>1.2.4</version> </dependency> <dependency> <groupId>org.apache.hbase</groupId> 
-      <artifactId>hbase-client</artifactId> <version>1.2.4</version> </dependency> -->
+    <!-- <dependency> <groupId>org.apache.hbase</groupId> <artifactId>hbase</artifactId> <version>1.2.4</version> </dependency> <dependency> <groupId>org.apache.hbase</groupId> <artifactId>hbase-client</artifactId> 
+      <version>1.2.4</version> </dependency> -->
 
     <dependency>
       <groupId>net.sf.json-lib</groupId>
