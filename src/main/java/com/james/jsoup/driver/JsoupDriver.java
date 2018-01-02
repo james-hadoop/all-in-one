@@ -12,7 +12,7 @@ public class JsoupDriver {
     public static void main(String[] args) throws IOException {
         System.out.println("Hello Jsoup!");
 
-        Document doc = Jsoup.connect("http://list.mp3.baidu.com/top/singer/A.html").get();
+        Document doc = Jsoup.connect("http://music.baidu.com/songlist").get();
         Element singerListDiv = doc.getElementsByAttributeValue("class", "content").first();
         Elements links = singerListDiv.getElementsByTag("a");
 

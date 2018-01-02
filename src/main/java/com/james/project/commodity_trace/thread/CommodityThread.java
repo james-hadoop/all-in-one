@@ -68,7 +68,7 @@ public class CommodityThread extends Thread {
 
                     double doublePrice = 0.0;
 
-                    doublePrice = convertPriceFromStringToDouble(price, config.getComma(), config.getDot());
+                    doublePrice = convertPriceFromStringToDouble(price.substring(0,price.indexOf("(")), config.getComma(), config.getDot());
 
                     if (isAlert(doublePrice, Double.parseDouble(threshold))) {
                         System.out.println(doublePrice + " : " + threshold + " --> ALERT");
