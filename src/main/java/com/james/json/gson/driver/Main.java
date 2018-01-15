@@ -1,11 +1,11 @@
-package com.james.demo.json.gson.driver;
+package com.james.json.gson.driver;
 
 import com.google.gson.Gson;
 import com.james.common.util.JamesUtil;
-import com.james.demo.json.gson.entity.Data;
-import com.james.demo.json.gson.entity.Device;
-import com.james.demo.json.gson.entity.User;
-import com.james.demo.json.gson.entity.VoiceCloudData;
+import com.james.json.gson.entity.Data;
+import com.james.json.gson.entity.Device;
+import com.james.json.gson.entity.User;
+import com.james.json.gson.entity.VoiceCloudData;
 
 public class Main {
     public static void main(String[] args) {

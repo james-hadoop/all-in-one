@@ -1,4 +1,4 @@
-package com.james.demo.json.gson.entity;
+package com.james.json.gson.entity;
 
 import java.io.Serializable;
 

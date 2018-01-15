@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.james.allinone</groupId>
@@ -56,20 +57,15 @@
     <hadoop.version>2.6.4</hadoop.version>
     <quartz.version>2.2.1</quartz.version>
     <kafka.version>0.10.0.1</kafka.version>
-    <hive.version>2.1.0</hive.version>
+    <hive.version>1.1.0</hive.version>
     <jmockit.version>1.28</jmockit.version>
     <elasticsearch.version>5.0.0</elasticsearch.version>
-    <json.schema.validator.version>2.2.6</json.schema.validator.version>
+    <json.schema.validator.version>2.1.7</json.schema.validator.version>
   </properties>
 
   <dependencies>
-<!--     <dependency>
-      <groupId>jdk.tools</groupId>
-      <artifactId>jdk.tools</artifactId>
-      <version>1.8</version>
-      <scope>system</scope>
-      <systemPath>${JAVA_HOME}/lib/tools.jar</systemPath>
-    </dependency> -->
+    <!-- <dependency> <groupId>jdk.tools</groupId> <artifactId>jdk.tools</artifactId> <version>1.8</version> <scope>system</scope> 
+      <systemPath>${JAVA_HOME}/lib/tools.jar</systemPath> </dependency> -->
 
     <dependency>
       <groupId>io.netty</groupId>
@@ -390,8 +386,8 @@
       <version>2.8.1</version>
     </dependency>
 
-    <!-- <dependency> <groupId>org.apache.hbase</groupId> <artifactId>hbase</artifactId> <version>1.2.4</version> </dependency> <dependency> <groupId>org.apache.hbase</groupId> <artifactId>hbase-client</artifactId> 
-      <version>1.2.4</version> </dependency> -->
+    <!-- <dependency> <groupId>org.apache.hbase</groupId> <artifactId>hbase</artifactId> <version>1.2.4</version> </dependency> 
+      <dependency> <groupId>org.apache.hbase</groupId> <artifactId>hbase-client</artifactId> <version>1.2.4</version> </dependency> -->
 
     <dependency>
       <groupId>net.sf.json-lib</groupId>
@@ -405,11 +401,35 @@
       <artifactId>json-schema-validator</artifactId>
       <version>${json.schema.validator.version}</version>
     </dependency>
+            <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20140107</version>
+            <scope>compile</scope>
+        </dependency>
 
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>21.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>2.16.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-server</artifactId>
+      <version>2.18.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-firefox-driver</artifactId>
+      <version>2.18.0</version>
     </dependency>
 
 
