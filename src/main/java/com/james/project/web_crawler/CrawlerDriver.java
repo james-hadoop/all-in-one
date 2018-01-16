@@ -25,40 +25,54 @@ import org.json.JSONObject;
 
 public class CrawlerDriver {
 
-    public static void main(String[] args) throws ClientProtocolException, IOException, JSONException {
-        List<Map<String, String>> parsedContentMapList = new ArrayList<Map<String, String>>();
+    public static void main(String[] args) {
+        BufferedWriter writer = null;
 
-        int endPageNumber = 633;
-        // int endPageNumber = 1;
+        try {
+            List<Map<String, String>> parsedContentMapList = new ArrayList<Map<String, String>>();
 
-        String keyword = "企业所得税";
+            int beginPageNumber =552;
+            int endPageNumber = 633;
+            // int endPageNumber = 1;
 
-        String path = "data.csv";
+            String keyword = "企业所得税";
 
-        File file = new File(path);
-        file.createNewFile();
+            String path = "46.csv";
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(path));
-        writer.write("keyword,url,value");
-        writer.newLine();
+            File file = new File(path);
+            file.createNewFile();
 
-        for (int i = 1; i <= endPageNumber; i++) {
-            String url = generateUrl(i);
+            writer = new BufferedWriter(new FileWriter(path));
+            writer.write("keyword,url,value");
+            writer.newLine();
 
-            String newsSummary = getHttpContent(url);
+            for (int i = beginPageNumber; i <= endPageNumber; i++) {
+                System.out.println("page number: " + i);
+                String url = generateUrl(i);
 
-            List<String> newsUrls = extractSubUrl(newsSummary);
+                String newsSummary = getHttpContent(url);
 
-            for (String newsUrl : newsUrls) {
-                Map<String, String> parsedContentMap = extractContent(newsUrl, keyword);
+                List<String> newsUrls = extractSubUrl(newsSummary);
 
-                parsedContentMapList.add(parsedContentMap);
+                for (String newsUrl : newsUrls) {
+                    Map<String, String> parsedContentMap = extractContent(newsUrl, keyword);
+                    saveMap(parsedContentMap, writer);
+                    // parsedContentMapList.add(parsedContentMap);
+                }
+
+                Thread.sleep(1000 * 3);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
 
-        processParsedContentMapList(parsedContentMapList, writer);
-
-        writer.close();
+        // processParsedContentMapList(parsedContentMapList, writer);
     }
 
     private static String generateUrl(int pageNumber) {
@@ -81,8 +95,8 @@ public class CrawlerDriver {
         HttpEntity entity = response.getEntity();
         String httpContent = EntityUtils.toString(entity, "UTF-8");
 
-        client=null;
-        get=null;
+        client = null;
+        get = null;
         return httpContent;
     }
 
@@ -128,16 +142,16 @@ public class CrawlerDriver {
         parsedContentMap.put("url", url);
 
         if (httpContent.contains("%")) {
-            List<String> percentageList = extractPercentage("");
-            if (null == percentageList) {
+            List<String> percentageList = extractPercentage(httpContent);
+            if (null == percentageList||percentageList.isEmpty()) {
                 parsedContentMap.put("value", "");
             } else {
                 StringBuilder sb = new StringBuilder();
                 for (String percentage : percentageList) {
-                    sb.append(percentage + ",");
+                    sb.append(percentage + " ");
                 }
 
-                parsedContentMap.put("value", sb.substring(0, sb.length() - 1).toString());
+                parsedContentMap.put("value", sb.substring(0, sb.length()).toString());
             }
         } else {
             parsedContentMap.put("value", "");
@@ -183,6 +197,8 @@ public class CrawlerDriver {
 
         writer.write(map.get("keyword") + "," + map.get("url") + "," + map.get("value"));
         writer.newLine();
+
+        writer.flush();
     }
 
     private static void processParsedContentMapList(List<Map<String, String>> parsedContentMapList,
