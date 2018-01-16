@@ -1,4 +1,4 @@
-package com.james.demo.strstr;
+package com.james.demo.string;
 
 public class DemoStrStr {
 

@@ -12,7 +12,7 @@ public class JsoupDriver {
     public static void main(String[] args) throws IOException {
         System.out.println("Hello Jsoup!");
 
-        Document doc = Jsoup.connect("http://music.baidu.com/songlist").get();
+        Document doc = Jsoup.connect("http://12366.cqsw.gov.cn:6001/essearch/essearch/pages/search.html?keyword=%E4%BC%81%E4%B8%9A%E6%89%80%E5%BE%97%E7%A8%8E").get();
         Element singerListDiv = doc.getElementsByAttributeValue("class", "content").first();
         Elements links = singerListDiv.getElementsByTag("a");
 
@@ -23,7 +23,7 @@ public class JsoupDriver {
         }
         System.out.println("------------------------------------------------------------------------------");
 
-        doc = Jsoup.connect("http://www.nongli.com/item4/index.asp?dt=2012-03-03").get();
+        doc = Jsoup.connect("http://12366.cqsw.gov.cn:6001/essearch/essearch/pages/search.html?keyword=%E4%BC%81%E4%B8%9A%E6%89%80%E5%BE%97%E7%A8%8E").get();
         Element infoTable = doc.getElementsByAttributeValue("class", "table002").first();
         Elements tableLineInfos = infoTable.select("tr");
         for (Element lineInfo : tableLineInfos) {
@@ -34,7 +34,7 @@ public class JsoupDriver {
 
         File input = new File("oschina.html");
         input.createNewFile();
-        doc = Jsoup.parse(input, "UTF-8", "http://www.oschina.net/");
+        doc = Jsoup.parse(input, "UTF-8", "http://12366.cqsw.gov.cn:6001/essearch/essearch/pages/search.html?keyword=%E4%BC%81%E4%B8%9A%E6%89%80%E5%BE%97%E7%A8%8E");
         links = doc.select("a[href]"); // 链接
         Elements pngs = doc.select("img[src$=.png]"); // 所有 png 的图片
         Element masthead = doc.select("div.masthead").first();// div with
@@ -45,7 +45,7 @@ public class JsoupDriver {
         }
         System.out.println("------------------------------------------------------------------------------");
 
-        doc = Jsoup.parse(input, "UTF-8", "http://www.oschina.net/");
+        doc = Jsoup.parse(input, "UTF-8", "http://12366.cqsw.gov.cn:6001/essearch/essearch/pages/search.html?keyword=%E4%BC%81%E4%B8%9A%E6%89%80%E5%BE%97%E7%A8%8E");
         links = doc.select("a[href]"); // 链接
         pngs = doc.select("img[src$=.png]"); // 所有 png 的图片
         masthead = doc.select("div.masthead").first();// div with class=masthead
