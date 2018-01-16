@@ -1,5 +1,8 @@
 package com.james.project.web_crawler;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,10 +28,19 @@ public class CrawlerDriver {
     public static void main(String[] args) throws ClientProtocolException, IOException, JSONException {
         List<Map<String, String>> parsedContentMapList = new ArrayList<Map<String, String>>();
 
-        // int endPageNumber=633;
-        int endPageNumber = 1;
+        int endPageNumber = 633;
+        // int endPageNumber = 1;
 
         String keyword = "企业所得税";
+
+        String path = "data.csv";
+
+        File file = new File(path);
+        file.createNewFile();
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(path));
+        writer.write("keyword,url,value");
+        writer.newLine();
 
         for (int i = 1; i <= endPageNumber; i++) {
             String url = generateUrl(i);
@@ -44,7 +56,9 @@ public class CrawlerDriver {
             }
         }
 
-        processParsedContentMapList(parsedContentMapList);
+        processParsedContentMapList(parsedContentMapList, writer);
+
+        writer.close();
     }
 
     private static String generateUrl(int pageNumber) {
@@ -67,6 +81,8 @@ public class CrawlerDriver {
         HttpEntity entity = response.getEntity();
         String httpContent = EntityUtils.toString(entity, "UTF-8");
 
+        client=null;
+        get=null;
         return httpContent;
     }
 
@@ -160,13 +176,27 @@ public class CrawlerDriver {
         System.out.println("\n");
     }
 
-    private static void processParsedContentMapList(List<Map<String, String>> parsedContentMapList) {
-        if (null == parsedContentMapList || parsedContentMapList.isEmpty()) {
+    private static void saveMap(Map<String, String> map, BufferedWriter writer) throws IOException {
+        if (null == map || map.isEmpty() || null == writer) {
+            return;
+        }
+
+        writer.write(map.get("keyword") + "," + map.get("url") + "," + map.get("value"));
+        writer.newLine();
+    }
+
+    private static void processParsedContentMapList(List<Map<String, String>> parsedContentMapList,
+            BufferedWriter writer) throws IOException {
+        if (null == parsedContentMapList || parsedContentMapList.isEmpty() || null == writer) {
             return;
         }
 
         for (Map<String, String> map : parsedContentMapList) {
-            printMap(map);
+            if (null == map || map.isEmpty()) {
+                continue;
+            }
+
+            saveMap(map, writer);
         }
     }
 }
