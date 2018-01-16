@@ -31,13 +31,13 @@ public class CrawlerDriver {
         try {
             List<Map<String, String>> parsedContentMapList = new ArrayList<Map<String, String>>();
 
-            int beginPageNumber =552;
-            int endPageNumber = 633;
+            int beginPageNumber =74;
+            int endPageNumber = 146;
             // int endPageNumber = 1;
 
-            String keyword = "企业所得税";
+            String keyword = "个人所得税";
 
-            String path = "46.csv";
+            String path = "gerensuodeshui6.csv";
 
             File file = new File(path);
             file.createNewFile();
@@ -60,7 +60,7 @@ public class CrawlerDriver {
                     // parsedContentMapList.add(parsedContentMap);
                 }
 
-                Thread.sleep(1000 * 3);
+                Thread.sleep(1000 * 5);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -76,7 +76,7 @@ public class CrawlerDriver {
     }
 
     private static String generateUrl(int pageNumber) {
-        String baseUrl = "http://12366.cqsw.gov.cn:6001/essearch/api/search?keyword=%E4%BC%81%E4%B8%9A%E6%89%80%E5%BE%97%E7%A8%8E&keyWordsRange=titleOrContent&kssj=%22%22&jssj=%22%22&sort=%22%22&currentPage=";
+        String baseUrl = "http://12366.cqsw.gov.cn:6001/essearch/api/search?keyword=%E4%B8%AA%E4%BA%BA%E6%89%80%E5%BE%97%E7%A8%8E&keyWordsRange=titleOrContent&kssj=%22%22&jssj=%22%22&sort=%22%22&currentPage=";
         String targetUrl = baseUrl + pageNumber;
 
         return targetUrl;
