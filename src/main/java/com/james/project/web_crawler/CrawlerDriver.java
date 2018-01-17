@@ -31,13 +31,13 @@ public class CrawlerDriver {
         try {
             List<Map<String, String>> parsedContentMapList = new ArrayList<Map<String, String>>();
 
-            int beginPageNumber =74;
-            int endPageNumber = 146;
+            int beginPageNumber =225;
+            int endPageNumber = 233;
             // int endPageNumber = 1;
 
             String keyword = "个人所得税";
 
-            String path = "gerensuodeshui6.csv";
+            String path = "gerensuodeshui9.csv";
 
             File file = new File(path);
             file.createNewFile();
