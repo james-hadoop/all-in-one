@@ -7,7 +7,7 @@ import com.james.json.gson.entity.Device;
 import com.james.json.gson.entity.User;
 import com.james.json.gson.entity.VoiceCloudData;
 
-public class Main {
+public class GsonTester {
     public static void main(String[] args) {
         String strData = makeSampleData();
         System.out.println("Sample data:\n" + strData);

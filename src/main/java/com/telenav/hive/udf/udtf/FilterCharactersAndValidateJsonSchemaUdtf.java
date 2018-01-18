@@ -1,4 +1,4 @@
-package com.james.hive.udf.udtf;
+package com.telenav.hive.udf.udtf;
 
 import java.util.ArrayList;
 import java.util.HashMap;
