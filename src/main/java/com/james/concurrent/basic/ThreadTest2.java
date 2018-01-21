@@ -1,4 +1,4 @@
-package com.james.concurrent.synchronize;
+package com.james.concurrent.basic;
 
 public class ThreadTest2 {
     public static int value = 0;

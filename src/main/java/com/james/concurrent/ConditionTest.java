@@ -84,6 +84,7 @@ class Buffer {
 
         try {
             while (buffer.size() == maxSize) {
+                // if buffer is full, await until not full
                 space.await();
             }
             buffer.offer(line);
@@ -103,6 +104,7 @@ class Buffer {
 
         try {
             while ((buffer.size() == 0) && (hasPendingLines())) {
+                // if buffer is empty, await until not empty
                 lines.await();
             }
 

@@ -18,6 +18,10 @@ public class CountDownLatchTest {
 }
 
 class VideoConference implements Runnable {
+    /*
+     * A synchronization aid that allows one or more threads to wait until a set of
+     * operations being performed in other threads completes.
+     */
     private final CountDownLatch controller;
 
     public VideoConference(int number) {
@@ -26,7 +30,12 @@ class VideoConference implements Runnable {
 
     public void arrive(String name) {
         System.out.printf("%s has arrived.", name);
+        /*
+         * Decrements the count of the latch, releasing all waiting threads if the count
+         * reaches zero.
+         */
         controller.countDown();
+
         System.out.printf("VideoConference: Waiting for %d participants.\n", controller.getCount());
     }
 
@@ -34,6 +43,10 @@ class VideoConference implements Runnable {
         System.out.printf("VideoConference: Initialization: %d participants.\n", controller.getCount());
 
         try {
+            /*
+             * Causes the current thread to wait until the latch has counted down to zero,
+             * unless the thread is interrupted.
+             */
             controller.await();
 
             System.out.printf("VideoConference: All participants have come\n");

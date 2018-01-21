@@ -1,4 +1,4 @@
-package com.james.concurrent.synchronize;
+package com.james.concurrent.basic;
 
 /**
  * 被操作的Value类 含成员变量value

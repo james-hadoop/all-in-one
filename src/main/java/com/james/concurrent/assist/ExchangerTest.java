@@ -34,12 +34,17 @@ class ExchangerProducer implements Runnable {
         for (int i = 0; i < 10; i++) {
             System.out.printf("Producer: Cycle %d\n", cycle);
 
-            for (int j = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
                 String message = "Event " + ((i * 10) + j);
                 System.out.printf("Producer: %s\n", message);
                 buffer.add(message);
 
                 try {
+                    /*
+                     * Waits for another thread to arrive at this exchange point (unless the current
+                     * thread is interrupted), and then transfers the given object to it, receiving
+                     * its object in return.
+                     */
                     buffer = exchanger.exchange(buffer);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -75,7 +80,7 @@ class ExchangerConsumer implements Runnable {
 
             System.out.println("Consumer: " + buffer.size());
 
-            for (int j = 0; i < 10; j++) {
+            for (int j = 0; j < 10; j++) {
                 String message = buffer.get(0);
                 System.out.println("Consumer: " + message);
                 buffer.remove(0);

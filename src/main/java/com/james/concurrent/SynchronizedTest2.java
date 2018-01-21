@@ -39,6 +39,9 @@ class Cinema {
     }
 
     public boolean sellTickets1(int number) {
+        /*
+         * synchronized object
+         */
         synchronized (controlCinema1) {
             if (number < vacanciesCinema1) {
                 vacanciesCinema1 -= number;
@@ -50,7 +53,10 @@ class Cinema {
     }
 
     public boolean sellTickets2(int number) {
-        synchronized (controlCinema1) {
+        /*
+         * synchronized object
+         */
+        synchronized (controlCinema2) {
             if (number < vacanciesCinema2) {
                 vacanciesCinema2 -= number;
                 return true;
@@ -61,6 +67,9 @@ class Cinema {
     }
 
     public boolean returnTickets1(int number) {
+        /*
+         * synchronized object
+         */
         synchronized (controlCinema1) {
             vacanciesCinema1 += number;
             return true;
@@ -68,6 +77,9 @@ class Cinema {
     }
 
     public boolean returnTickets2(int number) {
+        /*
+         * synchronized object
+         */
         synchronized (controlCinema2) {
             vacanciesCinema1 += number;
             return true;

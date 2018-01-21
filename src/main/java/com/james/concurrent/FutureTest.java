@@ -17,6 +17,10 @@ public class FutureTest {
         Future<String> futureResult = (Future<String>) executor.submit(task);
 
         // String result = futureResult.get();
+        /*
+         * Set a timeout threshold within which to get future result, throw TimeoutException
+         * if the result can not be responded with the threshold
+         */
         String result = futureResult.get(1, TimeUnit.SECONDS);
         System.out.println("result: " + result);
 

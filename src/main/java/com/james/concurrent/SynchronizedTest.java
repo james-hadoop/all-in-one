@@ -36,7 +36,11 @@ class Account {
         this.balance = balance;
     }
 
+    /*
+     * synchronized addAmount()
+     */
     public synchronized void addAmount(double amount) {
+        System.out.println("addAmount()");
         double tmp = balance;
 
         try {
@@ -49,7 +53,12 @@ class Account {
         balance = tmp;
     }
 
+    /*
+     * synchronized subtractAmount()
+     */
     public synchronized void subtractAmount(double amount) {
+        System.out.println("subtractAmount()");
+
         double tmp = balance;
 
         try {

@@ -16,6 +16,10 @@ public class ThreadFactoryTest {
         System.out.printf("Starting the Threads\n");
 
         for (int i = 0; i < 10; i++) {
+            /*
+             * Constructs a new Thread. Implementations may also initialize priority, name,
+             * daemon status, ThreadGroup, etc.
+             */
             thread = factory.newThread(task);
             thread.start();
         }

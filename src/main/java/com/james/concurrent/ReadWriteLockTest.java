@@ -29,6 +29,12 @@ class PricesInfo {
     private double price1;
     private double price2;
 
+    /*
+     * A ReadWriteLock maintains a pair of associated locks, one for read-only
+     * operations and one for writing. The read lock may be held simultaneously by
+     * multiple reader threads, so long as there are no writers. The write lock is
+     * exclusive.
+     */
     private ReadWriteLock lock;
 
     public PricesInfo() {
@@ -71,7 +77,6 @@ class ReadTask implements Runnable {
             System.out.printf("%s: Price 1: %f\n", Thread.currentThread().getName(), priceInfo.getPrice1());
             System.out.printf("%s: Price 2: %f\n", Thread.currentThread().getName(), priceInfo.getPrice2());
         }
-
     }
 }
 

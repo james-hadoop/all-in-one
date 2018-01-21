@@ -14,7 +14,10 @@ public class JoinTest {
         thread1.start();
         thread2.start();
 
-        // thread1��thread2������֮��main����������
+        /*
+         * main thread will continue to execute after thread1 and thread2's finish
+         * executing.
+         */
         thread1.join();
         thread2.join();
 

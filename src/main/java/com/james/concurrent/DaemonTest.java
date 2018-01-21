@@ -52,7 +52,7 @@ class WriterTask implements Runnable {
     }
 
     public void run() {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             Event event = new Event();
             event.setDate(new Date());
             event.setEvent(String.format("The thread %s has generated an event", Thread.currentThread().getId()));
@@ -62,7 +62,6 @@ class WriterTask implements Runnable {
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -74,12 +73,18 @@ class CleanerTask extends Thread {
 
     public CleanerTask(Deque<Event> deque) {
         this.deque = deque;
+        
+        /*
+         * JVM will exits if all running threads are all daemon threads
+         */
         setDaemon(true);
     }
 
     @Override
     public void run() {
         while (true) {
+            System.out.println("run() in daemon thread.");
+            
             Date date = new Date();
             clean(date);
         }

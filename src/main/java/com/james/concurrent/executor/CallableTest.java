@@ -12,6 +12,15 @@ import java.util.concurrent.TimeUnit;
 
 public class CallableTest {
     public static void main(String[] args) {
+        /*
+         * Creates a thread pool that reuses a fixed number of threads operating off a
+         * shared unbounded queue. At any point, at most nThreads threads will be active
+         * processing tasks. If additional tasks are submitted when all threads are
+         * active, they will wait in the queue until a thread is available. If any
+         * thread terminates due to a failure during execution prior to shutdown, a new
+         * one will take its place if needed to execute subsequent tasks. The threads in
+         * the pool will exist until it is explicitly shutdown.
+         */
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
 
         List<Future<Integer>> listResult = new ArrayList<>();
@@ -23,7 +32,13 @@ public class CallableTest {
 
             FactorialCalculator calculator = new FactorialCalculator(number);
 
+            /*
+             * Submits a value-returning task for execution and returns a Future
+             * representing the pending results of the task. The Future's get method will
+             * return the task's result upon successful completion.
+             */
             Future<Integer> result = executor.submit(calculator);
+            
             listResult.add(result);
         }
 
@@ -38,7 +53,6 @@ public class CallableTest {
             try {
                 TimeUnit.SECONDS.sleep(2);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         } while (executor.getCompletedTaskCount() < listResult.size());
@@ -50,7 +64,6 @@ public class CallableTest {
             try {
                 number = result.get();
             } catch (InterruptedException | ExecutionException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
             System.out.printf("Main: Task %d: %d\n", i, number);
@@ -84,5 +97,4 @@ class FactorialCalculator implements Callable<Integer> {
 
         return result;
     }
-
 }

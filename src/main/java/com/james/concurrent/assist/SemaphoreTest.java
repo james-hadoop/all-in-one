@@ -21,6 +21,13 @@ public class SemaphoreTest {
 }
 
 class PrintQueue {
+    /*
+     * A counting semaphore. Conceptually, a semaphore maintains a set of permits.
+     * Each acquire blocks if necessary until a permit is available, and then takes
+     * it. Each release adds a permit, potentially releasing a blocking acquirer.
+     * However, no actual permit objects are used; the Semaphore just keeps a count
+     * of the number available and acts accordingly.
+     */
     private final Semaphore semaphore;
     private boolean[] freePrinters;
     private Lock lockPrinters;
@@ -38,19 +45,26 @@ class PrintQueue {
 
     public void printJob(Object document) {
         try {
+            /*
+             * Acquires a permit from this semaphore, blocking until one is available, or
+             * the thread is interrupted.
+             */
             semaphore.acquire();
 
             int assignedPrinter = getPrinter();
 
             long duration = (long) (Math.random() * 10);
-            System.out.printf("%s: PrintQueue: Printing a Job in Printer %d during %d seconds\n", Thread
-                    .currentThread().getName(), assignedPrinter, duration);
+            System.out.printf("%s: PrintQueue: Printing a Job in Printer %d during %d seconds\n",
+                    Thread.currentThread().getName(), assignedPrinter, duration);
             TimeUnit.SECONDS.sleep(duration);
 
             freePrinters[assignedPrinter] = true;
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
+            /*
+             * Releases a permit, returning it to the semaphore.
+             */
             semaphore.release();
         }
     }
@@ -59,6 +73,12 @@ class PrintQueue {
         int ret = -1;
 
         try {
+            /*
+             * Acquires the lock.
+             * 
+             * If the lock is not available then the current thread becomes disabled for
+             * thread scheduling purposes and lies dormant until the lock has been acquired.
+             */
             lockPrinters.lock();
 
             for (int i = 0; i < freePrinters.length; i++) {
@@ -66,11 +86,14 @@ class PrintQueue {
                     ret = i;
                     freePrinters[i] = false;
                     break;
-                }// if
-            }// for
+                } // if
+            } // for
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            /*
+             * Releases the lock.
+             */
             lockPrinters.unlock();
         }
 

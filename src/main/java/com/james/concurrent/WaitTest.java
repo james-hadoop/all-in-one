@@ -31,15 +31,25 @@ class EventStorage {
     public synchronized void set() {
         while (storage.size() == maxSize) {
             try {
+                /*
+                 * Causes the current thread to wait until another thread invokes the
+                 * java.lang.Object.notify() method or the java.lang.Object.notifyAll() method
+                 * for this object. In other words, this method behaves exactly as if it simply
+                 * performs the call wait(0).
+                 */
                 wait();
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
 
         storage.add(new Date());
         System.out.printf("Set: %d\n", storage.size());
+
+        /*
+         * Wakes up all threads that are waiting on this object's monitor. A thread
+         * waits on an object's monitor by calling one of the wait methods.
+         */
         notifyAll();
     }
 
@@ -48,7 +58,6 @@ class EventStorage {
             try {
                 wait();
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }

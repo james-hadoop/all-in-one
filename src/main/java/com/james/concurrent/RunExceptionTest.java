@@ -6,12 +6,16 @@ public class RunExceptionTest {
     public static void main(String[] args) {
         Task task = new Task();
         Thread thread = new Thread(task);
-        thread.setUncaughtExceptionHandler(new ExcptionHandler());
+
+        /*
+         * define a ExceptionHandler to process Exception when it is thrown
+         */
+        thread.setUncaughtExceptionHandler(new ExceptionHandler());
         thread.start();
     }
 }
 
-class ExcptionHandler implements UncaughtExceptionHandler {
+class ExceptionHandler implements UncaughtExceptionHandler {
 
     public void uncaughtException(Thread t, Throwable e) {
         System.out.printf("An exception has been captured\n");

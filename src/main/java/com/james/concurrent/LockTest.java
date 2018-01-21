@@ -19,6 +19,9 @@ public class LockTest {
 }
 
 class PrintQueue {
+    /*
+     * Lock is a member variable in a critical resource.
+     */
     private final Lock queueLock = new ReentrantLock();
 
     public void printJob(Object document) {

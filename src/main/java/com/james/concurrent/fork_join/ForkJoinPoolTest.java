@@ -24,7 +24,6 @@ public class ForkJoinPoolTest {
             try {
                 TimeUnit.MILLISECONDS.sleep(5);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         } while (!task.isDone());
@@ -107,7 +106,6 @@ class Task extends RecursiveAction {
 
             invokeAll(t1, t2);
         }
-
     }
 
     private void updatePrices() {

@@ -9,11 +9,26 @@ import java.util.concurrent.TimeUnit;
 
 public class ForkTest {
     public static void main(String[] args) {
+        /*
+         * An ExecutorService for running ForkJoinTasks. A ForkJoinPool provides the
+         * entry point for submissions from non-ForkJoinTask clients, as well as
+         * management and monitoring operations.
+         * 
+         * A ForkJoinPool differs from other kinds of ExecutorService mainly by virtue
+         * of employing work-stealing: all threads in the pool attempt to find and
+         * execute tasks submitted to the pool and/or created by other active tasks
+         * (eventually blocking waiting for work if none exist). This enables efficient
+         * processing when most tasks spawn other subtasks (as do most ForkJoinTasks),
+         * as well as when many small tasks are submitted to the pool from external
+         * clients. Especially when setting asyncMode to true in constructors,
+         * ForkJoinPools may also be appropriate for use with event-style tasks that are
+         * never joined.
+         */
         ForkJoinPool pool = new ForkJoinPool();
 
-        FolderProcessor system = new FolderProcessor("C:\\Windows", "log");
-        FolderProcessor apps = new FolderProcessor("C:\\Program Files", "log");
-        FolderProcessor documents = new FolderProcessor("C:\\Documents And Settings", "log");
+        FolderProcessor system = new FolderProcessor("/Users/qjiang/workspace/all-in-one", "java");
+        FolderProcessor apps = new FolderProcessor("/Users/qjiang/workspace/all-in-one", "md");
+        FolderProcessor documents = new FolderProcessor("/Users/qjiang/workspace/all-in-one", "xml");
 
         pool.execute(system);
         pool.execute(apps);
@@ -30,7 +45,6 @@ public class ForkTest {
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         } while ((!system.isDone()) || (!apps.isDone()) || (!documents.isDone()));
@@ -48,6 +62,10 @@ public class ForkTest {
 }
 
 class FolderProcessor extends RecursiveTask<List<String>> {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 8269191946020127581L;
     private String path;
     private String extension;
 
@@ -68,7 +86,28 @@ class FolderProcessor extends RecursiveTask<List<String>> {
             for (int i = 0; i < content.length; i++) {
                 if (content[i].isDirectory()) {
                     FolderProcessor task = new FolderProcessor(content[i].getAbsolutePath(), extension);
+
+                    /*
+                     * Arranges to asynchronously execute this task in the pool the current task is
+                     * running in, if applicable, or using the ForkJoinPool.commonPool() if not
+                     * inForkJoinPool. While it is not necessarily enforced, it is a usage error to
+                     * fork a task more than once unless it has completed and been reinitialized.
+                     * Subsequent modifications to the state of this task or any data it operates on
+                     * are not necessarily consistently observable by any thread other than the one
+                     * executing it unless preceded by a call to join or related methods, or a call
+                     * to isDone returning true.
+                     */
                     task.fork();
+
+                    /*
+                     * Appends the specified element to the end of this list (optional operation).
+                     * 
+                     * Lists that support this operation may place limitations on what elements may
+                     * be added to this list. In particular, some lists will refuse to add null
+                     * elements, and others will impose restrictions on the type of elements that
+                     * may be added. List classes should clearly specify in their documentation any
+                     * restrictions on what elements may be added.
+                     */
                     tasks.add(task);
                 } else {
                     if (checkFile(content[i].getName())) {
@@ -88,6 +127,12 @@ class FolderProcessor extends RecursiveTask<List<String>> {
 
     private void addResultsFromTasks(List<String> list, List<FolderProcessor> tasks) {
         for (FolderProcessor item : tasks) {
+            /*
+             * Returns the result of the computation when it is done. This method differs
+             * from get() in that abnormal completion results in RuntimeException or Error,
+             * not ExecutionException, and that interrupts of the calling thread do not
+             * cause the method to abruptly return by throwing InterruptedException.
+             */
             list.addAll(item.join());
         }
     }

@@ -29,7 +29,6 @@ public class ForkJoinFutureTest {
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         } while (!task.isDone());
@@ -39,14 +38,14 @@ public class ForkJoinFutureTest {
             pool.awaitTermination(1, TimeUnit.DAYS);
             System.out.printf("Main: The word appears %d in the document", task.get());
         } catch (InterruptedException | ExecutionException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 }
 
 class Document {
-    private String[] words = { "the", "hello", "goodbye", "packt", "java", "thread", "pool", "random", "class", "main" };
+    private String[] words = { "the", "hello", "goodbye", "packt", "java", "thread", "pool", "random", "class",
+            "main" };
 
     public String[][] generateDocument(int numLines, int numWords, String word) {
         int counter = 0;
@@ -72,6 +71,10 @@ class Document {
 }
 
 class DocumentTask extends RecursiveTask<Integer> {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -4586027695209822254L;
     private String[][] document;
     private int start, end;
     private String word;
@@ -99,7 +102,6 @@ class DocumentTask extends RecursiveTask<Integer> {
             try {
                 result = groupResults(task1.get(), task2.get());
             } catch (InterruptedException | ExecutionException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -123,7 +125,6 @@ class DocumentTask extends RecursiveTask<Integer> {
             try {
                 result = result + task.get();
             } catch (InterruptedException | ExecutionException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -139,6 +140,10 @@ class DocumentTask extends RecursiveTask<Integer> {
 }
 
 class LineTask extends RecursiveTask<Integer> {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1601146268666554651L;
     private String[] line;
     private int start, end;
     private String word;
@@ -165,7 +170,6 @@ class LineTask extends RecursiveTask<Integer> {
             try {
                 result = groupResults(task1.get(), task2.get());
             } catch (InterruptedException | ExecutionException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -185,7 +189,6 @@ class LineTask extends RecursiveTask<Integer> {
         try {
             Thread.sleep(10);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
