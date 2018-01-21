@@ -2,91 +2,84 @@ package com.james.concurrent.assist;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Exchanger;
 
 public class ExchangerTest {
+
     public static void main(String[] args) {
-        List<String> buffer1 = new ArrayList<String>();
-        List<String> buffer2 = new ArrayList<String>();
-
-        Exchanger<List<String>> exchanger = new Exchanger<List<String>>();
-
-        ExchangerProducer producer = new ExchangerProducer(buffer1, exchanger);
-        ExchangerConsumer consumer = new ExchangerConsumer(buffer2, exchanger);
-
-        new Thread(producer).start();
-        new Thread(consumer).start();
+        Exchanger<List<Integer>> exchanger = new Exchanger<>();
+        new Consumer(exchanger).start();
+        new Producer(exchanger).start();
     }
 }
 
-class ExchangerProducer implements Runnable {
-    private List<String> buffer;
-    private final Exchanger<List<String>> exchanger;
+class Producer extends Thread {
+    List<Integer> list = new ArrayList<>();
 
-    public ExchangerProducer(List<String> buffer, Exchanger<List<String>> exchanger) {
-        this.buffer = buffer;
+    /*
+     * A synchronization point at which threads can pair and swap elements within
+     * pairs. Each thread presents some object on entry to the exchange method,
+     * matches with a partner thread, and receives its partner's object on return.
+     * An Exchanger may be viewed as a bidirectional form of a SynchronousQueue.
+     * Exchangers may be useful in applications such as genetic algorithms and
+     * pipeline designs.
+     */
+    Exchanger<List<Integer>> exchanger = null;
+
+    public Producer(Exchanger<List<Integer>> exchanger) {
+        super();
         this.exchanger = exchanger;
     }
 
+    @Override
     public void run() {
-        int cycle = 1;
-
+        Random rand = new Random();
         for (int i = 0; i < 10; i++) {
-            System.out.printf("Producer: Cycle %d\n", cycle);
-
-            for (int j = 0; j < 10; j++) {
-                String message = "Event " + ((i * 10) + j);
-                System.out.printf("Producer: %s\n", message);
-                buffer.add(message);
-
-                try {
-                    /*
-                     * Waits for another thread to arrive at this exchange point (unless the current
-                     * thread is interrupted), and then transfers the given object to it, receiving
-                     * its object in return.
-                     */
-                    buffer = exchanger.exchange(buffer);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+            System.out.println("Producer round " + i);
+            list.clear();
+            list.add(rand.nextInt(10000));
+            list.add(rand.nextInt(10000));
+            list.add(rand.nextInt(10000));
+            list.add(rand.nextInt(10000));
+            list.add(rand.nextInt(10000));
+            try {
+                /*
+                 * Waits for another thread to arrive at this exchange point (unless the current
+                 * thread is interrupted), and then transfers the given object to it, receiving
+                 * its object in return.
+                 */
+                list = exchanger.exchange(list);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-
-            System.out.println("Producer: " + buffer.size());
-            cycle++;
         }
     }
 }
 
-class ExchangerConsumer implements Runnable {
-    private List<String> buffer;
-    private final Exchanger<List<String>> exchanger;
+class Consumer extends Thread {
+    List<Integer> list = new ArrayList<>();
+    Exchanger<List<Integer>> exchanger = null;
 
-    public ExchangerConsumer(List<String> buffer, Exchanger<List<String>> exchanger) {
-        this.buffer = buffer;
+    public Consumer(Exchanger<List<Integer>> exchanger) {
+        super();
         this.exchanger = exchanger;
     }
 
+    @Override
     public void run() {
-        int cycle = 1;
-
         for (int i = 0; i < 10; i++) {
-            System.out.printf("Consumer: Cycle %d\n", cycle);
-
+            System.out.println("Consumer round " + i);
             try {
-                buffer = exchanger.exchange(buffer);
+                list = exchanger.exchange(list);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-            System.out.println("Consumer: " + buffer.size());
-
-            for (int j = 0; j < 10; j++) {
-                String message = buffer.get(0);
-                System.out.println("Consumer: " + message);
-                buffer.remove(0);
-
-                cycle++;
-            }
+            System.out.print(list.get(0) + ", ");
+            System.out.print(list.get(1) + ", ");
+            System.out.print(list.get(2) + ", ");
+            System.out.print(list.get(3) + ", ");
+            System.out.println(list.get(4) + ", ");
         }
     }
 }
