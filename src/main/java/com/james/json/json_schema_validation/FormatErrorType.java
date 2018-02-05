@@ -1,4 +1,4 @@
-package com.telenav.hive.udf.udtf;
+package com.james.json.json_schema_validation;
 
 public enum FormatErrorType {
     Good("0", 0), ContainReservedCharacter("1", 1), InvalidJsonSchema("2", 2);

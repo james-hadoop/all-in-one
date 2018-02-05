@@ -28,7 +28,7 @@
       <url>http://hqb-nexus-01:8081/nexus/content/repositories/cloudera/</url>
     </repository>
     <repository>
-      <id>cloudera</id>
+      <id>cloudera2</id>
       <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
     </repository>
   </repositories>
@@ -232,21 +232,10 @@
       <artifactId>commons-io</artifactId>
       <version>1.4</version>
     </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.5</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient-cache</artifactId>
-      <version>4.5</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient-win</artifactId>
-      <version>4.5</version>
-    </dependency>
+    <!-- <dependency> <groupId>org.apache.httpcomponents</groupId> <artifactId>httpclient</artifactId> <version>${httpcomponents.version}</version> 
+      </dependency> <dependency> <groupId>org.apache.httpcomponents</groupId> <artifactId>httpclient-cache</artifactId> <version>${httpcomponents.version}</version> 
+      </dependency> <dependency> <groupId>org.apache.httpcomponents</groupId> <artifactId>httpclient-win</artifactId> <version>${httpcomponents.version}</version> 
+      </dependency> -->
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
@@ -457,21 +446,27 @@
     <finalName>allinone</finalName>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <encoding>UTF-8</encoding>
-          <failOnMissingWebXml>false</failOnMissingWebXml>
+          <appendAssemblyId>false</appendAssemblyId>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
         </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>assembly</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.5.1</version>
-        <!-- Maven默认的编译级别是1.5 , 目前此项目中使用了1.8才有的语法, 固需要做以下配置 -->
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
