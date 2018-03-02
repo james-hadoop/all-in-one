@@ -61,6 +61,7 @@
     <jmockit.version>1.28</jmockit.version>
     <elasticsearch.version>5.0.0</elasticsearch.version>
     <json.schema.validator.version>2.1.7</json.schema.validator.version>
+    <aws-java-sdk.version>1.11.155</aws-java-sdk.version>
   </properties>
 
   <dependencies>
@@ -420,6 +421,12 @@
       <artifactId>selenium-firefox-driver</artifactId>
       <version>2.18.0</version>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk</artifactId>
+      <version>${aws-java-sdk.version}</version>
+    </dependency>
+
 
 
 

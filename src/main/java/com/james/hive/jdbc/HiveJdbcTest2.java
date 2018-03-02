@@ -18,7 +18,7 @@ public class HiveJdbcTest2 {
 
     public static void main(String[] args) throws ClassNotFoundException, SQLException {
         Class.forName(HIVE_JDBC_DRIVER);
-        Connection conn = DriverManager.getConnection("jdbc:hive2://172.16.20.23:10000/mydb", "", "");
+        Connection conn = DriverManager.getConnection("jdbc:hive2://localhost:10000/mydb", "anonymous", "anonymous");
 
         String sql = null;
         ResultSet rs = null;
