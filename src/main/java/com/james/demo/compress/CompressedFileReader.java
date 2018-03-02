@@ -36,9 +36,9 @@ public class CompressedFileReader {
 
         List<String> lines = readGzipFile(path);
 
-        List<String> invalideLines = validateJsonSchema(lines, false);
+        List<String> validatedLines = validateJsonSchema(lines, false);
 
-        saveLines(invalideLines, outputPath);
+        saveLines(validatedLines, outputPath);
     }
 
     public static void processGzipInputStream(InputStream inputStream, String outputPath) throws Exception {
@@ -48,9 +48,9 @@ public class CompressedFileReader {
 
         List<String> lines = readGzipInputStream(inputStream);
 
-        List<String> invalideLines = validateJsonSchema(lines, true);
+        List<String> validatedLines = validateJsonSchema(lines, true);
 
-        saveLines(invalideLines, outputPath);
+        saveLines(validatedLines, outputPath);
     }
 
     public static List<String> readGzipInputStream(InputStream inputStream) throws Exception {
@@ -117,7 +117,7 @@ public class CompressedFileReader {
             return null;
         }
 
-        List<String> invalideLines = new ArrayList<String>();
+        List<String> validatedLines = new ArrayList<String>();
 
         try {
             for (String jsonString : lines) {
@@ -133,17 +133,17 @@ public class CompressedFileReader {
 
                     ValidationResult validationResult = JsonSchemaValidator.validateLogRecord(payload);
                     if (flagFilter == validationResult.isSuccess()) {
-                        invalideLines.add(jsonString);
+                        validatedLines.add(jsonString);
                     }
                 } catch (JSONException e) {
-                    invalideLines.add(jsonString);
+                    validatedLines.add(jsonString);
                 }
             }
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
 
-        return invalideLines;
+        return validatedLines;
     }
 
     /**

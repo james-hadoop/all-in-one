@@ -15,7 +15,6 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.james.common.util.JamesUtil;
 import com.james.demo.compress.CompressedFileReader;
 
 public class S3LogJsonSchemaValidator {
@@ -40,27 +39,30 @@ public class S3LogJsonSchemaValidator {
         List<String> logPaths = getlogPath(s3, Regions.US_EAST_1, bucketName, "logshed/",
                 "logshed_app_id=denali_usage_logs", "2018", "02", "06");
         System.out.println("logPaths.size()=" + logPaths.size());
-        for (String logPath : logPaths) {
-            System.out.println(logPath);
-        }
+        // for (String logPath : logPaths) {
+        // System.out.println(logPath);
+        // }
+        //
+        // JamesUtil.printDivider();
+        //
+        // List<List<String>> dividedLogPaths = divideLogPathsWithBatchSize(logPaths,
+        // 5);
+        // System.out.println("dividedLogPaths.size()=" + dividedLogPaths.size());
+        // for (List<String> tempLogPaths : dividedLogPaths) {
+        // for (String logPath : tempLogPaths) {
+        // System.out.println(logPath);
+        // }
+        // System.out.println("--------");
+        // }
+        //
+        // JamesUtil.printDivider();
 
-        JamesUtil.printDivider();
-
-        List<List<String>> dividedLogPaths = divideLogPathsWithBatchSize(logPaths, 5);
-        System.out.println("dividedLogPaths.size()=" + dividedLogPaths.size());
-        for (List<String> tempLogPaths : dividedLogPaths) {
-            for (String logPath : tempLogPaths) {
-                System.out.println(logPath);
-            }
-            System.out.println("--------");
-        }
-
-        JamesUtil.printDivider();
-
-        for (String logPath : logPaths.subList(0, 5)) {
+        List<String> sliceLogPaths = logPaths.subList(0, 5);
+        System.out.println("sliceLogPaths.size()=" + sliceLogPaths.size());
+        for (String logPath : sliceLogPaths) {
             System.out.println("...processing file: " + logPath);
             S3Object object = s3.getObject(new GetObjectRequest(bucketName, logPath));
-            CompressedFileReader.processGzipInputStream(object.getObjectContent(), logPath + ".output");
+            CompressedFileReader.processGzipInputStream(object.getObjectContent(), logPath.substring(logPath.lastIndexOf("/")+1,logPath.length()) + ".output");
         }
 
         System.out.println("END..." + System.currentTimeMillis());
@@ -111,5 +113,5 @@ public class S3LogJsonSchemaValidator {
 
         return dividedLogPaths;
     }
-
+    
 }
