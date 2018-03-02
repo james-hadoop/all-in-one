@@ -18,10 +18,16 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.james.demo.compress.CompressedFileReader;
 
 public class S3LogJsonSchemaValidator {
+
     public static void main(String[] args) throws Exception {
         System.out.println("BEGIN..." + System.currentTimeMillis());
 
         String bucketName = "logsheddev";
+        String keyPrefix = "logshed/";
+        String key = "logshed_app_id=denali_usage_logs";
+        String year = "2018";
+        String month = "02";
+        String day = "06";
 
         AWSCredentials credentials = null;
         try {
@@ -36,8 +42,10 @@ public class S3LogJsonSchemaValidator {
         AmazonS3 s3 = new AmazonS3Client(credentials);
         s3.setRegion(Region.getRegion(Regions.US_EAST_1));
 
-        List<String> logPaths = getlogPath(s3, Regions.US_EAST_1, bucketName, "logshed/",
-                "logshed_app_id=denali_usage_logs", "2018", "02", "06");
+        // List<String> logPaths = getlogPath(s3, Regions.US_EAST_1, bucketName,
+        // "logshed/",
+        // "logshed_app_id=denali_usage_logs", "2018", "02", "06");
+        List<String> logPaths = getlogPath(s3, Regions.US_EAST_1, bucketName, keyPrefix, key, year, month, day);
         System.out.println("logPaths.size()=" + logPaths.size());
         // for (String logPath : logPaths) {
         // System.out.println(logPath);
@@ -62,7 +70,8 @@ public class S3LogJsonSchemaValidator {
         for (String logPath : sliceLogPaths) {
             System.out.println("...processing file: " + logPath);
             S3Object object = s3.getObject(new GetObjectRequest(bucketName, logPath));
-            CompressedFileReader.processGzipInputStream(object.getObjectContent(), logPath.substring(logPath.lastIndexOf("/")+1,logPath.length()) + ".output");
+            CompressedFileReader.processGzipInputStream(object.getObjectContent(),
+                    logPath.substring(logPath.lastIndexOf("/") + 1, logPath.length()) + ".output");
         }
 
         System.out.println("END..." + System.currentTimeMillis());
@@ -113,5 +122,5 @@ public class S3LogJsonSchemaValidator {
 
         return dividedLogPaths;
     }
-    
+
 }
