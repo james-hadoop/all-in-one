@@ -71,7 +71,7 @@ public class S3LogJsonSchemaValidator {
             System.out.println("...processing file: " + logPath);
             S3Object object = s3.getObject(new GetObjectRequest(bucketName, logPath));
             CompressedFileReader.processGzipInputStream(object.getObjectContent(),
-                    logPath.substring(logPath.lastIndexOf("/") + 1, logPath.length()) + ".output");
+                    logPath.substring(logPath.lastIndexOf("/") + 1, logPath.length()) + ".output", false);
         }
 
         System.out.println("END..." + System.currentTimeMillis());

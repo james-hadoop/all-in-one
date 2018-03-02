@@ -20,39 +20,57 @@ import com.james.json.json_schema_validation.ValidationResult;
 
 public class CompressedFileReader {
     public static void main(String[] args) throws Exception {
-        processGzipFile("a.gz","output.txt");
+        processGzipFile("a.gz", "output.txt", false);
     }
 
     /**
      * processGzipFile
      * 
      * @param path
+     * @param outputPath
+     * @param flagFilter
      * @throws Exception
      */
-    public static void processGzipFile(String path, String outputPath) throws Exception {
+    public static void processGzipFile(String path, String outputPath, boolean flagFilter) throws Exception {
         if (null == path || path.isEmpty()) {
             return;
         }
 
         List<String> lines = readGzipFile(path);
 
-        List<String> validatedLines = validateJsonSchema(lines, false);
+        List<String> validatedLines = validateJsonSchema(lines, flagFilter);
 
         saveLines(validatedLines, outputPath);
     }
 
-    public static void processGzipInputStream(InputStream inputStream, String outputPath) throws Exception {
+    /**
+     * processGzipInputStream
+     * 
+     * @param inputStream
+     * @param outputPath
+     * @param flagFilter
+     * @throws Exception
+     */
+    public static void processGzipInputStream(InputStream inputStream, String outputPath, boolean flagFilter)
+            throws Exception {
         if (null == inputStream) {
             return;
         }
 
         List<String> lines = readGzipInputStream(inputStream);
 
-        List<String> validatedLines = validateJsonSchema(lines, true);
+        List<String> validatedLines = validateJsonSchema(lines, flagFilter);
 
         saveLines(validatedLines, outputPath);
     }
 
+    /**
+     * readGzipInputStream
+     * 
+     * @param inputStream
+     * @return
+     * @throws Exception
+     */
     public static List<String> readGzipInputStream(InputStream inputStream) throws Exception {
         if (null == inputStream) {
             return null;
@@ -79,6 +97,13 @@ public class CompressedFileReader {
         }
     }
 
+    /**
+     * readGzipFile
+     * 
+     * @param path
+     * @return
+     * @throws Exception
+     */
     public static List<String> readGzipFile(String path) throws Exception {
         if (null == path || path.isEmpty()) {
             return null;
