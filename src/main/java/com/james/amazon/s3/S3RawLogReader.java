@@ -131,6 +131,6 @@ public class S3RawLogReader {
     }
 
     private static void displayGzInputStream(InputStream input) throws Exception {
-        CompressedFileReader.processGzipInputStream(input);
+        CompressedFileReader.processGzipInputStream(input,input+".output");
     }
 }

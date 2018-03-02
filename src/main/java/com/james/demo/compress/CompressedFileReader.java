@@ -20,7 +20,7 @@ import com.james.json.json_schema_validation.ValidationResult;
 
 public class CompressedFileReader {
     public static void main(String[] args) throws Exception {
-        processGzipFile("a.gz");
+        processGzipFile("a.gz","output.txt");
     }
 
     /**
@@ -29,7 +29,7 @@ public class CompressedFileReader {
      * @param path
      * @throws Exception
      */
-    public static void processGzipFile(String path) throws Exception {
+    public static void processGzipFile(String path, String outputPath) throws Exception {
         if (null == path || path.isEmpty()) {
             return;
         }
@@ -38,10 +38,10 @@ public class CompressedFileReader {
 
         List<String> invalideLines = validateJsonSchema(lines, false);
 
-        saveLines(invalideLines, "output.txt");
+        saveLines(invalideLines, outputPath);
     }
 
-    public static void processGzipInputStream(InputStream inputStream) throws Exception {
+    public static void processGzipInputStream(InputStream inputStream, String outputPath) throws Exception {
         if (null == inputStream) {
             return;
         }
@@ -50,7 +50,7 @@ public class CompressedFileReader {
 
         List<String> invalideLines = validateJsonSchema(lines, true);
 
-        saveLines(invalideLines, "ouput.txt");
+        saveLines(invalideLines, outputPath);
     }
 
     public static List<String> readGzipInputStream(InputStream inputStream) throws Exception {

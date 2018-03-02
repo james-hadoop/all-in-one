@@ -8,7 +8,7 @@ import com.james.dataStructure.tree.BinTree.TreeNode;
 
 public class JamesUtil {
     public static void printDivider() {
-        System.out.println("\n----------------------------------------------------\n\n");
+        System.out.println("\n---------------------------------- divider ----------------------------------\n\n");
     }
 
     public static void printArray(int[] arr) {
