@@ -1,3 +1,5 @@
 /target/
 
 /src/main/java/com/james/common/conf/CommonConf.java
+
+/data/log/

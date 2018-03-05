@@ -85,7 +85,7 @@ public class CompressedFileReader {
 
             String line;
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
+                // System.out.println(line);
                 lines.add(line);
             }
 
@@ -118,7 +118,7 @@ public class CompressedFileReader {
 
             String line;
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
+                // System.out.println(line);
                 lines.add(line);
             }
 
