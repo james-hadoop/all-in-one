@@ -76,15 +76,16 @@ public class CompressedFileReader {
             return null;
         }
 
+        List<String> lines = new ArrayList<String>();
+        
         BufferedReader br = null;
         try {
-            List<String> lines = new ArrayList<String>();
             GZIPInputStream gzin = new GZIPInputStream(inputStream);
             BufferedInputStream bis = new BufferedInputStream(gzin);
             br = new BufferedReader(new InputStreamReader(bis));
 
             String line;
-            while ((line = br.readLine()) != null) {
+            while (null != br && (line = br.readLine()) != null) {
                 // System.out.println(line);
                 lines.add(line);
             }
@@ -93,7 +94,9 @@ public class CompressedFileReader {
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         } finally {
-            br.close();
+            if (null != br) {
+                br.close();
+            }
         }
     }
 

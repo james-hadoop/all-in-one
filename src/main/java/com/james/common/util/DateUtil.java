@@ -24,6 +24,7 @@ public class DateUtil {
     public static final String DD = "DD";
     
     public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 

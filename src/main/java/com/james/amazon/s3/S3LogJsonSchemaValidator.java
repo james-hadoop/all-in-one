@@ -29,14 +29,17 @@ public class S3LogJsonSchemaValidator {
     public static void main(String[] args) throws Exception {
         System.out.println("BEGIN..." + DateUtil.DateToString(new Date(), DateUtil.YYYY_MM_DD_HH_MM_SS));
 
-        int threadCount = 10;
+        int threadCount = 20;
         String bucketName = "logsheddev";
         String keyPrefix = "logshed/";
         String key = "logshed_app_id=denali_usage_logs";
-        String year = "2018";
-        String month = "02";
-        String day = "06";
-        int batchSize = 5;
+        // String year = "2018";
+        // String month = "02";
+        // String day = "06";
+        String year = "2015";
+        String month = "12";
+        String day = "31";
+        int batchSize = 20;
 
         AWSCredentials credentials = null;
         try {
@@ -88,8 +91,10 @@ public class S3LogJsonSchemaValidator {
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadCount);
         for (int i = 0; i < dividedLogPaths.size(); i++) {
             JsonFormatValidatorThread thread = new JsonFormatValidatorThread(i, dividedLogPaths.get(i), s3, bucketName);
-            executor.execute(thread);
+            // executor.execute(thread);
+            executor.submit(thread);
         }
+        executor.shutdown();
 
         System.out.println("END..." + DateUtil.DateToString(new Date(), DateUtil.YYYY_MM_DD_HH_MM_SS));
     }
@@ -147,6 +152,10 @@ public class S3LogJsonSchemaValidator {
 
         List<String> tempLogPaths = new ArrayList<String>();
         for (String logPath : logPaths) {
+            if(!logPath.endsWith(".gz")) {
+                continue;
+            }
+            
             List<String> tLogPaths = new ArrayList<String>();
 
             tempLogPaths.add(logPath);
@@ -179,31 +188,26 @@ class JsonFormatValidatorThread extends Thread {
     public void run() {
         System.out.println("Thread ID=" + threadId + "  sliceLogPaths.size()=" + sliceLogPaths.size());
         for (String logPath : sliceLogPaths) {
+            String processingTime = DateUtil.DateToString(new Date(), DateUtil.YYYYMMDDHHMMSS);
+            System.out.println("\tThread ID= " + threadId + " is processing file " + logPath + " at "
+                    + DateUtil.DateToString(new Date(), DateUtil.YYYY_MM_DD_HH_MM_SS));
             S3Object object = s3.getObject(new GetObjectRequest(bucketName, logPath));
             try {
-                CompressedFileReader
-                        .processGzipInputStream(object.getObjectContent(),
-                                S3LogJsonSchemaValidator.OUTPUT_DIR
-                                        + logPath.substring(logPath.lastIndexOf("/") + 1, logPath.length()) + ".output",
-                                true);
+                CompressedFileReader.processGzipInputStream(object.getObjectContent(),
+                        S3LogJsonSchemaValidator.OUTPUT_DIR
+                                + logPath.substring(logPath.lastIndexOf("/") + 1, logPath.length()) + processingTime,
+                        true);
             } catch (Exception e) {
-                System.err.println("Thread ID=" + threadId + " Exception caught!");
+                System.err.println("Thread ID=" + threadId + " Exception caught when processing " + logPath);
                 e.printStackTrace();
             }
         }
-        System.out.println("\tThread " + threadId + "finish processing files at"
+        System.out.println("Thread ID= " + threadId + " finish processing files at "
                 + DateUtil.DateToString(new Date(), DateUtil.YYYY_MM_DD_HH_MM_SS));
-    }
-}
-
-class DaemonThread extends Thread {
-    public DaemonThread() {
-        setDaemon(true);
-    }
-
-    @Override
-    public void run() {
-        long runningEndTime = System.currentTimeMillis();
-        System.out.println("END..." + runningEndTime);
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
