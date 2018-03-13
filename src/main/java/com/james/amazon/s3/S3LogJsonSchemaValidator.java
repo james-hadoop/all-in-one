@@ -21,7 +21,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.james.common.util.DateUtil;
 import com.james.common.util.JamesUtil;
-import com.james.demo.compress.CompressedFileReader;
+import com.james.demo.file.CompressedFileReader;
 
 public class S3LogJsonSchemaValidator {
     public static final String OUTPUT_DIR = "data" + File.separator + "log" + File.separator;
