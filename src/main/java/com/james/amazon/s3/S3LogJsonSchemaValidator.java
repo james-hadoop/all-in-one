@@ -196,7 +196,7 @@ class JsonFormatValidatorThread extends Thread {
                 CompressedFileReader.processGzipInputStream(object.getObjectContent(),
                         S3LogJsonSchemaValidator.OUTPUT_DIR
                                 + logPath.substring(logPath.lastIndexOf("/") + 1, logPath.length()) + processingTime,
-                        true);
+                        false);
             } catch (Exception e) {
                 System.err.println("Thread ID=" + threadId + " Exception caught when processing " + logPath);
                 e.printStackTrace();
