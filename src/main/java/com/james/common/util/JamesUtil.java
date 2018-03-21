@@ -19,6 +19,22 @@ public class JamesUtil {
         System.out.println();
     }
 
+    public static void printArray(String[] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            System.out.print(arr[i]);
+            System.out.print("\t");
+        }
+        System.out.println();
+    }
+
+    public static void printList(List<String> list) {
+        for (int i = 0; i < list.size(); i++) {
+            System.out.print(list.get(i));
+            System.out.print("\t");
+        }
+        System.out.println();
+    }
+
     public static void printTreeList(List<TreeNode> list, String mode) {
         System.out.println(mode + " tree: ");
         for (TreeNode node : list) {
