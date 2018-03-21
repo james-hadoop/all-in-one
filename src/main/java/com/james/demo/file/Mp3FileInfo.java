@@ -39,9 +39,9 @@ public class Mp3FileInfo {
         try {
             System.out.println("----------------Loading...Content-----------------");
             AbstractID3v2Tag id3v2tag = mp3File.getID3v2Tag();
-            String songName = new String(id3v2tag.frameMap.get("TIT2").toString().getBytes("ISO-8859-1"), "GB2312");
-            String singer = new String(id3v2tag.frameMap.get("TPE1").toString().getBytes("ISO-8859-1"), "GB2312");
-            String author = new String(id3v2tag.frameMap.get("TALB").toString().getBytes("ISO-8859-1"), "GB2312");
+            String songName = new String(id3v2tag.frameMap.get("TIT2").toString().getBytes("GB2312"), "GB2312");
+            String singer = new String(id3v2tag.frameMap.get("TPE1").toString().getBytes("GB2312"), "GB2312");
+            String author = new String(id3v2tag.frameMap.get("TALB").toString().getBytes("GB2312"), "GB2312");
             System.out.println("歌名：" + songName.substring(START, songName.length() - 3));
             System.out.println("歌手:" + singer.substring(START, singer.length() - 3));
             System.out.println("专辑名：" + author.substring(START, author.length() - 3));
