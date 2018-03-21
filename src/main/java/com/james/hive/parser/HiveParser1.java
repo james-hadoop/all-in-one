@@ -84,20 +84,22 @@ public class HiveParser1 {
         // JamesUtil.printDivider();
 
         /**
-         * INSERT OVERWRITE TABLE arp_nav_edge_tmp SELECT "NAV_EDGE_IMPRESSION"
-         * as event_name,
-         * concat(${log_year},lpad(${log_month},2,'0'),lpad(${log_day},2,'0'))
-         * as date_id, CONCAT(payload.log_context.log_id, '_', trv_pos) as
-         * log_id, payload.log_context.reg_vid, payload.log_context.visitor_id,
+         * INSERT OVERWRITE TABLE arp_nav_edge_tmp SELECT "NAV_EDGE_IMPRESSION" as
+         * event_name,
+         * concat(${log_year},lpad(${log_month},2,'0'),lpad(${log_day},2,'0')) as
+         * date_id, CONCAT(payload.log_context.log_id, '_', trv_pos) as log_id,
+         * payload.log_context.reg_vid, payload.log_context.visitor_id,
          * payload.log_context.carrier, payload.log_context.app_id FROM
-         * arp_client_events_stg LATERAL VIEW
-         * posexplode(payload.travelled_edge_id_list) trv_explode as trv_pos,trv
-         * WHERE payload.event_name = 'NAV_EDGES';
+         * arp_client_events_stg LATERAL VIEW posexplode(payload.travelled_edge_id_list)
+         * trv_explode as trv_pos,trv WHERE payload.event_name = 'NAV_EDGES';
          */
-        hiveSql = "INSERT OVERWRITE TABLE arp_nav_edge_tmp " + "SELECT " + "\" NAV_EDGE_IMPRESSION\" as event_name," + "concat('2017',lpad('05',2,'0'),lpad('31',2,'0')) as date_id,"
-                        + "CONCAT(payload.log_context.log_id, '_', trv_pos) as log_id," + "payload.log_context.reg_vid," + "payload.log_context.visitor_id," + "payload.log_context.carrier,"
-                        + "payload.log_context.app_id " + "FROM arp_client_events_stg " + "LATERAL VIEW posexplode(payload.travelled_edge_id_list) trv_explode as trv_pos"
-                        + " WHERE payload.event_name = 'NAV_EDGES'";
+        hiveSql = "INSERT OVERWRITE TABLE arp_nav_edge_tmp " + "SELECT " + "\" NAV_EDGE_IMPRESSION\" as event_name,"
+                + "concat('2017',lpad('05',2,'0'),lpad('31',2,'0')) as date_id,"
+                + "CONCAT(payload.log_context.log_id, '_', trv_pos) as log_id," + "payload.log_context.reg_vid,"
+                + "payload.log_context.visitor_id," + "payload.log_context.carrier," + "payload.log_context.app_id "
+                + "FROM arp_client_events_stg "
+                + "LATERAL VIEW posexplode(payload.travelled_edge_id_list) trv_explode as trv_pos"
+                + " WHERE payload.event_name = 'NAV_EDGES'";
 
         System.out.println();
         System.out.println("hiveSql=\n" + hiveSql);
@@ -117,13 +119,13 @@ public class HiveParser1 {
         System.out.println("\nast.getChild(i)--------");
         for (int i = 0; i < nChildCount; i++) {
             Tree child = ast.getChild(i);
-            System.out.println("\n\tchild:");
+            System.out.println("\n\tchild: " + i);
             System.out.println(child.toStringTree());
 
             int nGrandChildCount = child.getChildCount();
             for (int j = 0; j < nGrandChildCount; j++) {
                 Tree grandChild = child.getChild(j);
-                System.out.println("\n\t\tgrandChild:");
+                System.out.println("\n\t\tgrandChild: " + j);
                 System.out.println(grandChild.toStringTree());
             }
         }
@@ -218,16 +220,16 @@ public class HiveParser1 {
                 oper = OPERATION_TOKON.INSERT;
                 break;
             /*
-             * case HiveParser.TOK_DELETE_FROM:
-             * tableNameStack.push(nowQueryTable); operStack.push(oper); oper =
-             * OPERATION_TOKON.DELETE; nowQueryTable = BaseSemanticAnalyzer
-             * .getUnescapedName((ASTNode) ast.getChild(0));//sql22 break;
+             * case HiveParser.TOK_DELETE_FROM: tableNameStack.push(nowQueryTable);
+             * operStack.push(oper); oper = OPERATION_TOKON.DELETE; nowQueryTable =
+             * BaseSemanticAnalyzer .getUnescapedName((ASTNode) ast.getChild(0));//sql22
+             * break;
              */
             /*
-             * case HiveParser.TOK_UPDATE_TABLE:
-             * tableNameStack.push(nowQueryTable); operStack.push(oper); oper =
-             * OPERATION_TOKON.UPDATE; nowQueryTable = BaseSemanticAnalyzer
-             * .getUnescapedName((ASTNode) ast.getChild(0));//sql22 break;
+             * case HiveParser.TOK_UPDATE_TABLE: tableNameStack.push(nowQueryTable);
+             * operStack.push(oper); oper = OPERATION_TOKON.UPDATE; nowQueryTable =
+             * BaseSemanticAnalyzer .getUnescapedName((ASTNode) ast.getChild(0));//sql22
+             * break;
              */
             case HiveParser.TOK_SELECT:
                 tableNameStack.push(nowQueryTable);
@@ -249,15 +251,18 @@ public class HiveParser1 {
                 oper = OPERATION_TOKON.CREATETABLE;
                 break;
             }
-            if (ast.getToken().getType() >= HiveParser.TOK_ALTERDATABASE_PROPERTIES && ast.getToken().getType() <= HiveParser.TOK_ALTERVIEW_RENAME) {
+            if (ast.getToken().getType() >= HiveParser.TOK_ALTERDATABASE_PROPERTIES
+                    && ast.getToken().getType() <= HiveParser.TOK_ALTERVIEW_RENAME) {
                 operMetaInfo = true;
                 oper = OPERATION_TOKON.ALTER;
             }
-            if (ast.getToken().getType() >= HiveParser.TOK_DESCDATABASE && ast.getToken().getType() <= HiveParser.TOK_DESCTABLE) {
+            if (ast.getToken().getType() >= HiveParser.TOK_DESCDATABASE
+                    && ast.getToken().getType() <= HiveParser.TOK_DESCTABLE) {
                 operMetaInfo = true;
                 oper = OPERATION_TOKON.DESC;
             }
-            if (ast.getToken().getType() >= HiveParser.TOK_SHOWCOLUMNS && ast.getToken().getType() <= HiveParser.TOK_SHOW_TBLPROPERTIES) {
+            if (ast.getToken().getType() >= HiveParser.TOK_SHOWCOLUMNS
+                    && ast.getToken().getType() <= HiveParser.TOK_SHOW_TBLPROPERTIES) {
                 oper = OPERATION_TOKON.SHOW;
             }
         }
@@ -288,18 +293,16 @@ public class HiveParser1 {
                 }
                 break;
             /*
-             * case HiveParser.TOK_DELETE_FROM:// outputTable String deletetabl
-             * = BaseSemanticAnalyzer .getUnescapedName((ASTNode)
-             * ast.getChild(0)); if (oper == OPERATION_TOKON.DELETE) {
-             * nowQueryTable = deletetabl; } tables.add(deletetabl + "\t" +
-             * oper); break;
+             * case HiveParser.TOK_DELETE_FROM:// outputTable String deletetabl =
+             * BaseSemanticAnalyzer .getUnescapedName((ASTNode) ast.getChild(0)); if (oper
+             * == OPERATION_TOKON.DELETE) { nowQueryTable = deletetabl; }
+             * tables.add(deletetabl + "\t" + oper); break;
              */
             /*
-             * case HiveParser.TOK_UPDATE_TABLE:// outputTable String updatetab
-             * = BaseSemanticAnalyzer .getUnescapedName((ASTNode)
-             * ast.getChild(0)); if (oper == OPERATION_TOKON.UPDATE) {
-             * nowQueryTable = updatetab; } tables.add(updatetab + "\t" + oper);
-             * break;
+             * case HiveParser.TOK_UPDATE_TABLE:// outputTable String updatetab =
+             * BaseSemanticAnalyzer .getUnescapedName((ASTNode) ast.getChild(0)); if (oper
+             * == OPERATION_TOKON.UPDATE) { nowQueryTable = updatetab; }
+             * tables.add(updatetab + "\t" + oper); break;
              */
             case HiveParser.TOK_TAB:// outputTable
                 String tableTab = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));
@@ -310,8 +313,10 @@ public class HiveParser1 {
                 break;
             case HiveParser.TOK_TABREF:// inputTable
                 ASTNode tabTree = (ASTNode) ast.getChild(0);
-                String tableName = (tabTree.getChildCount() == 1) ? BaseSemanticAnalyzer.getUnescapedName((ASTNode) tabTree.getChild(0))
-                                : BaseSemanticAnalyzer.getUnescapedName((ASTNode) tabTree.getChild(0)) + "." + tabTree.getChild(1);
+                String tableName = (tabTree.getChildCount() == 1)
+                        ? BaseSemanticAnalyzer.getUnescapedName((ASTNode) tabTree.getChild(0))
+                        : BaseSemanticAnalyzer.getUnescapedName((ASTNode) tabTree.getChild(0)) + "."
+                                + tabTree.getChild(1);
                 if (oper == OPERATION_TOKON.SELECT) {
                     if (joinClause && !"".equals(nowQueryTable)) {
                         nowQueryTable += "&" + tableName;//
@@ -384,9 +389,13 @@ public class HiveParser1 {
             case HiveParser.DOT:
                 if (ast.getType() == HiveParser.DOT) {
                     if (ast.getChildCount() == 2) {
-                        if (ast.getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL && ast.getChild(0).getChildCount() == 1 && ast.getChild(1).getType() == HiveParser.Identifier) {
-                            String alia = BaseSemanticAnalyzer.unescapeIdentifier(ast.getChild(0).getChild(0).getText().toLowerCase());
-                            String column = BaseSemanticAnalyzer.unescapeIdentifier(ast.getChild(1).getText().toLowerCase());
+                        if (ast.getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL
+                                && ast.getChild(0).getChildCount() == 1
+                                && ast.getChild(1).getType() == HiveParser.Identifier) {
+                            String alia = BaseSemanticAnalyzer
+                                    .unescapeIdentifier(ast.getChild(0).getChild(0).getText().toLowerCase());
+                            String column = BaseSemanticAnalyzer
+                                    .unescapeIdentifier(ast.getChild(1).getText().toLowerCase());
                             String realTable = null;
                             if (!getTables().contains(alia + ":" + oper) && getTableAlias().get(alia) == null) {// [b
                                 getTableAlias().put(alia, nowQueryTable);
@@ -427,14 +436,17 @@ public class HiveParser1 {
                 tables.add(dropTableName + ":" + "DROP");
                 break;
             }
-            if (ast.getToken().getType() >= HiveParser.TOK_SHOWCOLUMNS && ast.getToken().getType() <= HiveParser.TOK_SHOW_TBLPROPERTIES) {
+            if (ast.getToken().getType() >= HiveParser.TOK_SHOWCOLUMNS
+                    && ast.getToken().getType() <= HiveParser.TOK_SHOW_TBLPROPERTIES) {
                 ASTNode showNode = (ASTNode) ast.getChild(0);
                 String showTableName = BaseSemanticAnalyzer.getUnescapedName((ASTNode) showNode);
                 tables.add(showTableName + ":" + oper);
             }
-            if (ast.getToken() != null && ast.getToken().getType() >= HiveParser.TOK_DESCDATABASE && ast.getToken().getType() <= HiveParser.TOK_DESCTABLE) {
+            if (ast.getToken() != null && ast.getToken().getType() >= HiveParser.TOK_DESCDATABASE
+                    && ast.getToken().getType() <= HiveParser.TOK_DESCTABLE) {
                 ASTNode descNode = (ASTNode) ast.getChild(0);
-                if (!(descNode.getToken().getType() == HiveParser.TOK_COL_NAME) || !(descNode.getToken().getType() == HiveParser.TOK_TABNAME)) {
+                if (!(descNode.getToken().getType() == HiveParser.TOK_COL_NAME)
+                        || !(descNode.getToken().getType() == HiveParser.TOK_TABNAME)) {
                     if (descNode.getChildCount() > 0) {
                         descNode = (ASTNode) descNode.getChild(0);
                     }

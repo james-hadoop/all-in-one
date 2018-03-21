@@ -366,7 +366,7 @@ public class HiveParser2 {
         java.util.Iterator<String> it = map.keySet().iterator();
         while (it.hasNext()) {
             String key = it.next();
-            System.out.println(key + "\t" + map.get(key));
+            System.out.println(key + "    \t" + map.get(key));
         }
     }
 
@@ -475,7 +475,9 @@ public class HiveParser2 {
                 + "payload.log_context.app_id " + "FROM arp_client_events_stg " + "LATERAL VIEW posexplode(payload.travelled_edge_id_list) trv_explode as trv_pos"
                 + " WHERE payload.event_name = 'NAV_EDGES'";
         
-        String parsesql = sql31;
+        String sql51="INSERT OVERWRITE TABLE unified_client_events_0_flattened SELECT * FROM ( SELECT a1,a2,a3 FROM unified_client_events_0 where a1 in ('USER_ACTION','SDCARD_CHANGE') UNION ALL SELECT b1,b2,b3 FROM unified_client_events_1 where b1 in ('CARD_INTERACTION')) stg_temp";
+        
+        String parsesql = sql51;
         HiveParser2 hp = new HiveParser2();
         System.out.println(parsesql);
         ASTNode ast = null;
