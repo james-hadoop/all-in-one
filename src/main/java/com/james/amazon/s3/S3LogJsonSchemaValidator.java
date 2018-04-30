@@ -24,7 +24,7 @@ import com.james.common.util.JamesUtil;
 import com.james.demo.file.CompressedFileReader;
 
 public class S3LogJsonSchemaValidator {
-    public static final String OUTPUT_DIR = "data" + File.separator + "log" + File.separator;
+    public static final String OUTPUT_DIR = "data" + File.separator + "json_validation_output" + File.separator;
 
     public static void main(String[] args) throws Exception {
         System.out.println("BEGIN..." + DateUtil.DateToString(new Date(), DateUtil.YYYY_MM_DD_HH_MM_SS));
@@ -36,9 +36,9 @@ public class S3LogJsonSchemaValidator {
         // String year = "2018";
         // String month = "02";
         // String day = "06";
-        String year = "2015";
-        String month = "12";
-        String day = "31";
+        String year = "2018";
+        String month = "03";
+        String day = "16";
         int batchSize = 20;
 
         AWSCredentials credentials = null;
