@@ -16,9 +16,9 @@ public class CompressedFileWriter {
     public static final String GZIP_ENCODE_ISO_8859_1 = "ISO-8859-1";  
     
     public static void main(String[] args) throws Exception {
-        readInputFile("pom.xml");
+        //readInputFile("pom.xml");
         
-        GZipUtils.compress("pom.xml");
+        GZipUtils.compress("GZipFolder");
 
         // compressGzipFile("data/a.gz", "output.txt");
     }

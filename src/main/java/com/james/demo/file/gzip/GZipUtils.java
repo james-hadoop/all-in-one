@@ -46,7 +46,20 @@ public abstract class GZipUtils {
      * @throws Exception
      */
     public static void compress(File file) throws Exception {
-        compress(file, true);
+        if (!file.isDirectory()) {
+            compress(file, true);
+        }
+
+        File[] files = file.listFiles();
+        {
+            if (null == files || 1 > files.length) {
+                return;
+            }
+
+            for (File f : files) {
+                compress(f, true);
+            }
+        }
     }
 
     /**
@@ -115,7 +128,21 @@ public abstract class GZipUtils {
      */
     public static void compress(String path, boolean delete) throws Exception {
         File file = new File(path);
-        compress(file, delete);
+
+        if (!file.isDirectory()) {
+            compress(file, delete);
+        }
+
+        File[] files = file.listFiles();
+        {
+            if (null == files || 1 > files.length) {
+                return;
+            }
+
+            for (File f : files) {
+                compress(f, true);
+            }
+        }
     }
 
     /**
