@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -37,21 +34,12 @@ public class S3LogJsonSchemaValidator {
         // String month = "02";
         // String day = "06";
         String year = "2018";
-        String month = "03";
-        String day = "16";
+        String month = "04";
+        String day = "13";
         int batchSize = 20;
 
-        AWSCredentials credentials = null;
-        try {
-            credentials = new ProfileCredentialsProvider().getCredentials();
-        } catch (Exception e) {
-            throw new AmazonClientException("Cannot load the credentials from the credential profiles file. "
-                    + "Please make sure that your credentials file is at the correct "
-                    + "location (~/.aws/credentials), and is in valid format.", e);
-        }
-
         @SuppressWarnings("deprecation")
-        AmazonS3 s3 = new AmazonS3Client(credentials);
+        AmazonS3 s3 = new AmazonS3Client();
         s3.setRegion(Region.getRegion(Regions.US_EAST_1));
 
         // List<String> logPaths = getlogPath(s3, Regions.US_EAST_1, bucketName,
@@ -152,10 +140,10 @@ public class S3LogJsonSchemaValidator {
 
         List<String> tempLogPaths = new ArrayList<String>();
         for (String logPath : logPaths) {
-            if(!logPath.endsWith(".gz")) {
+            if (!logPath.endsWith(".gz")) {
                 continue;
             }
-            
+
             List<String> tLogPaths = new ArrayList<String>();
 
             tempLogPaths.add(logPath);
