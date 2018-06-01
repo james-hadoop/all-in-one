@@ -23,5 +23,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="libs/jaudiotagger-2.2.6-SNAPSHOT.jar" sourcepath="libs/jaudiotagger-2.2.6-SNAPSHOT-sources.jar"/>
+	<classpathentry kind="lib" path="libs/JamesLib.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
