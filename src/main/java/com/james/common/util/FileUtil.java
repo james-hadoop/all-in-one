@@ -8,6 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileUtil {
+    public static void main(String[] args) {
+        for (int i = 0; i < 24; i++) {
+            System.out.println(i + " -> " + FileUtil.convertHourFormat(i));
+        }
+    }
+
     public static void importDataIntoFile(String path, List<byte[]> listByte) throws IOException {
         File file = new File(path);
         file.createNewFile();
@@ -56,5 +62,13 @@ public class FileUtil {
             }
         }
         return true;
+    }
+
+    public static String convertHourFormat(int hour) {
+        if (0 > hour || 24 < hour) {
+            return null;
+        }
+
+        return String.format("%02d", hour);
     }
 }
