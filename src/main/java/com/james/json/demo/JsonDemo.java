@@ -1,22 +1,22 @@
 package com.james.json.demo;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class JsonDemo {
     public static void main(String[] args) throws JSONException {
-        // String jsonString =
-        // "{\"payload\":{\"k1\":\"v1\",\"k2\":\"v2\"},\"schema_definition\":\"schema_definition\"}";
-        String jsonString = "{\"payload\":{\"duration\":1,\"route_id\":\"ceac1961-124b-491e-9ad6-0ad924234ec2\",\"distance\":0,\"caused_by\":\"EXIT\",\"log_context\":{\"log_id\":\"e722269d-c0f5-4e9a-a451-338de3e6e7d2\",\"current_lat\":37.399094,\"utc_timestamp\":1508978706618,\"visitor_id\":\"b09f270c-736f-40c0-965b-f2089936f60d\",\"car_id\":\"\",\"log_version\":\"v2\",\"reg_vid\":\"DenaliMY19_Unknown\",\"current_lon\":-121.9770482},\"event_name\":\"NAV_END\",\"parent_route_id\":\"8a7da039-eb2f-421f-8c82-056f5b96c603\",\"schema_definition\":\"NavEnd\"},\"logshed_app_id\":\"denali_usage_logs_replay\",\"client_address\":\"10.222.224.172\",\"type\":1,\"slogtime\":1511287032829}";
-        System.out.println("jsonString:\n\t" + jsonString);
+        String denaliLogString = "{\"product_id\":\"\",\"end_time\":0,\"auto_renew\":false,\"purchase_time\":0,\"region\":\"na\",\"connected_svcs_product_type\":0,\"start_time\":0,\"app_id\":\"0ea274d1-f80d-4eff-8dc1-5d632209aa95\",\"order_id\":\"\",\"connected_svcs_purchase_state\":0,\"demo_mode_vehicle_state\":false,\"map_source\":\"HERE\",\"vehicle_manufacturer\":\"34\",\"schema_definition\":\"AppStart\",\"connection_type\":\"WIFI\",\"event_name\":\"APP_START\",\"os_version\":\"6.0.1\",\"language\":\"en\",\"car_model\":\"123415\",\"log_context\":{\"log_id\":\"d92b6d95-0c7d-4cc1-8c9c-25d2a19df367\",\"app_version\":\"4.0.140.3.000\",\"utc_timestamp\":1531221507941,\"time_zone\":\"America/Los_Angeles\",\"visitor_id\":\"c6ab6302-0b1a-4ae5-9af2-1d5634f2d5b7\",\"device_model\":\"TbooK 16 Power(M5F6)\",\"device_make\":\"Teclast\",\"car_id\":\"\",\"current_lat\":42.329645,\"log_version\":\"v2\",\"current_lon\":-83.039008,\"reg_vid\":\"Unknown\"},\"model_year\":\"1\"} response:1000\n" + 
+                "";
 
-        JSONObject logs = new JSONObject(jsonString);
+        JSONObject denaliLog = new JSONObject(denaliLogString);
 
-        String payloadString = logs.getString("payload");
-        System.out.println("payloadString=" + payloadString);
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode payload = mapper.createObjectNode();
 
-        JSONObject payload = new JSONObject(payloadString);
-        String defination = payload.getString("schema_definition");
-        System.out.println("defination=" + defination);
+        payload.put("payload", denaliLog.toString());
+
+        System.out.println(payload.toString());
     }
 }
