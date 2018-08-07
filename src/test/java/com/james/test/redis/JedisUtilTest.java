@@ -1,4 +1,4 @@
-package com.james.redis;
+package com.james.test.redis;
 
 import java.util.HashMap;
 import java.util.Iterator;

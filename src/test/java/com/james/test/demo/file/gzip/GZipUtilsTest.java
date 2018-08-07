@@ -1,4 +1,4 @@
-package com.james.demo.file.gzip;
+package com.james.test.demo.file.gzip;
 
 import static org.junit.Assert.assertEquals;
 
@@ -8,6 +8,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 import org.junit.Test;
+
+import com.james.demo.file.gzip.GZipUtils;
 
 /**
  * @author <a href="mailto:zlex.dongliang@gmail.com">梁栋</a>

@@ -1,4 +1,4 @@
-package com.james.allinone.allinone;
+package com.james.test.allinone.allinone;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
