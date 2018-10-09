@@ -477,7 +477,7 @@ public class HiveParser2 {
         
         String sql51="INSERT OVERWRITE TABLE unified_client_events_0_flattened SELECT * FROM ( SELECT a1,a2,a3 FROM unified_client_events_0 where a1 in ('USER_ACTION','SDCARD_CHANGE') UNION ALL SELECT b1,b2,b3 FROM unified_client_events_1 where b1 in ('CARD_INTERACTION')) stg_temp";
         
-        String parsesql = sql51;
+        String parsesql = sql24;
         HiveParser2 hp = new HiveParser2();
         System.out.println(parsesql);
         ASTNode ast = null;
