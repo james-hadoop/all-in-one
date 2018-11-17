@@ -452,10 +452,32 @@
       <version>1.17.0</version>
     </dependency>
     <dependency>
+    <groupId>org.apache.calcite</groupId>
+    <artifactId>calcite-linq4j</artifactId>
+    <version>1.17.0</version>
+</dependency>
+    <dependency>
+    <groupId>org.apache.calcite</groupId>
+    <artifactId>calcite-avatica</artifactId>
+    <version>1.6.0</version>
+</dependency>
+    <dependency>
     <groupId>org.antlr</groupId>
     <artifactId>antlr4-runtime</artifactId>
     <version>4.7.1</version>
 </dependency>
+
+<!-- <dependency>
+    <groupId>net.hydromatic</groupId>
+    <artifactId>optiq</artifactId>
+    <version>0.4.11</version>
+</dependency>
+<dependency>
+    <groupId>net.hydromatic</groupId>
+    <artifactId>optiq-core</artifactId>
+    <version>0.8</version>
+</dependency> -->
+
 
 
   </dependencies>
