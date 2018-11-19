@@ -4,7 +4,7 @@
 
   <groupId>com.james.allinone</groupId>
   <artifactId>allinone</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>jar</packaging>
 
   <name>allinone</name>
@@ -466,7 +466,11 @@
       <artifactId>elasticsearch-hadoop-hive</artifactId>
       <version>6.4.2</version>
     </dependency>
-
+<dependency>
+    <groupId>com.alibaba</groupId>
+    <artifactId>druid</artifactId>
+    <version>1.1.12</version>
+  </dependency>
 
   </dependencies>
 
