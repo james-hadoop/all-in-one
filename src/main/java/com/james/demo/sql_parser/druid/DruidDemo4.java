@@ -1,7 +1,6 @@
 package com.james.demo.sql_parser.druid;
 
 import java.util.List;
-import java.util.Map;
 
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLStatement;
@@ -11,7 +10,6 @@ import com.alibaba.druid.sql.ast.statement.SQLSelectQuery;
 import com.alibaba.druid.sql.ast.statement.SQLSelectQueryBlock;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
 import com.alibaba.druid.sql.ast.statement.SQLTableSource;
-import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
 import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
 import com.alibaba.druid.util.JdbcConstants;
@@ -20,8 +18,8 @@ import com.james.common.util.JamesUtil;
 public class DruidDemo4 {
 
     public static void main(String[] args) {
-        StringBuilder from =new StringBuilder();
-        
+        StringBuilder sb = new StringBuilder();
+
         String dbType = JdbcConstants.MYSQL;
 
         String sql = "SELECT tt.a_a AS f_a_a, tt.b_b AS f_b_b, tt.b_c AS f_b_c, at_b.same\n" + "FROM (\n"
@@ -33,16 +31,14 @@ public class DruidDemo4 {
                 + "        GROUP BY b_key\n" + "        ORDER BY b_b\n" + "    ) at_b\n"
                 + "    ON at_a.a_key = at_b.b_key AS tt";
 
-        sql=sql.toLowerCase();
+        sql = sql.toLowerCase();
         System.out.println("sql: \n\t" + sql);
-        
+
         System.out.println("--> parseStatements(sql, dbType)");
         List<SQLStatement> statementList = SQLUtils.parseStatements(sql, dbType);
 
         MySqlSchemaStatVisitor visitor = new MySqlSchemaStatVisitor();
-        MySqlSchemaStatVisitor visitor2 = new MySqlSchemaStatVisitor();
-        MySqlASTVisitorAdapter astVisitor = new MySqlASTVisitorAdapter();
-        SQLASTOutputVisitor astOutputVisitor = SQLUtils.createFormatOutputVisitor(from, statementList, dbType);
+        SQLASTOutputVisitor astOutputVisitor = SQLUtils.createFormatOutputVisitor(sb, statementList, dbType);
 
         SQLSelectStatement statement = (SQLSelectStatement) statementList.get(0);
 
@@ -63,26 +59,33 @@ public class DruidDemo4 {
 
         // SQLSelectQueryBlock
         SQLSelectQueryBlock queryBlock = sqlSelect.getQueryBlock();
-        
+
 //        System.out.println("\n--> from:");
 //        queryBlock.getFrom().accept(astOutputVisitor);
 //        System.out.println(from.toString());
-        
-        List<SQLSelectItem> selectItemList=queryBlock.getSelectList();
-        for(SQLSelectItem item:selectItemList) {
-            if(from.length()>1){  
-                from.append(",") ;  
-            }  
+
+        List<SQLSelectItem> selectItemList = queryBlock.getSelectList();
+        for (SQLSelectItem item : selectItemList) {
+            if (sb.length() > 1) {
+                sb.append(",");
+            }
             item.accept(astOutputVisitor);
         }
-        System.out.println("\n-->SELECT:\n "+from) ;  
+        System.out.println("\n-->SELECT:\n " + sb);
+        
+        List<String> listColumn=JamesUtil.removeAs(JamesUtil.string2List(sb.toString(), ","));
+        for(String col:listColumn) {
+            SQLTableSource tableSource = queryBlock.findTableSourceWithColumn(col);
+            System.out.println("tableSource: " + tableSource.getAlias());
+        }
+        
 
-        // SQLTableSource
-        System.out.println("\n--> queryBlock.findTableSourceWithColumn(\"b_same\"):");
-        SQLTableSource tableSource = queryBlock.findTableSourceWithColumn("b_same");
-        System.out.println("tableSource: " + tableSource.getAlias());
-
-        // SQLSelectItem
-        SQLSelectItem selectItem = queryBlock.findAllColumnSelectItem();
+//        // SQLTableSource
+//        System.out.println("\n--> queryBlock.findTableSourceWithColumn(\"b_same\"):");
+//        SQLTableSource tableSource = queryBlock.findTableSourceWithColumn("a_a");
+//        System.out.println("tableSource: " + tableSource.getAlias());
+//
+//        // SQLSelectItem
+//        SQLSelectItem selectItem = queryBlock.findAllColumnSelectItem();
     }
 }
