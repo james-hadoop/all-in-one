@@ -11,6 +11,7 @@ import com.alibaba.druid.sql.ast.statement.SQLExprTableSource;
 import com.alibaba.druid.sql.ast.statement.SQLTableSource;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
+import com.alibaba.druid.sql.repository.SchemaRepository;
 import com.alibaba.druid.stat.TableStat;
 import com.alibaba.druid.stat.TableStat.Column;
 import com.alibaba.druid.stat.TableStat.Name;
@@ -27,11 +28,22 @@ public class DruidDemo {
 //                        .toString();
         // String sql = "select a,b,c from t_table";
 
-        String sql = "SELECT at_a.a_a, at_b.b_b\n" + "FROM (\n" + "    SELECT a_key, MAX(a_a) AS a_a, MAX(a_b) AS a_b\n"
-                + "        , MAX(a_c) AS a_c\n" + "    FROM t_a\n" + "    GROUP BY a_key\n" + ") at_a\n"
-                + "    LEFT JOIN (\n" + "        SELECT b_key, MAX(b_a) AS b_a, MAX(b_b) AS b_b\n"
-                + "            , MAX(b_c) AS b_c\n" + "        FROM t_b\n" + "        GROUP BY b_key\n" + "    ) at_b\n"
-                + "    ON at_a.a_key = at_b.b_key";
+        String sql = "SELECT at_a.a_a, at_b.b_b\n" + 
+                "FROM (\n" + 
+                "    SELECT a_key, MAX(a_a) AS a_a, MAX(a_b) AS a_b\n" + 
+                "        , MAX(a_c) AS a_c\n" + 
+                "    FROM t_a\n" + 
+                "    GROUP BY a_key\n" + 
+                "    ORDER BY a_a\n" + 
+                ") at_a\n" + 
+                "    LEFT JOIN (\n" + 
+                "        SELECT b_key, MAX(b_a) AS b_a, MAX(b_b) AS b_b\n" + 
+                "            , MAX(b_c) AS b_c\n" + 
+                "        FROM t_b\n" + 
+                "        GROUP BY b_key\n" + 
+                "        ORDER BY b_b\n" + 
+                "    ) at_b\n" + 
+                "    ON at_a.a_key = at_b.b_key";
 
         System.out.println("sql: \n\t" + sql);
 
@@ -53,6 +65,14 @@ public class DruidDemo {
                 System.out.println(col.getName() + " -> " + col.getFullName() + " -> " + col.getDataType());
             }
 
+            // visitor.getOrderByColumns():
+            System.out.println("\n--> visitor.getOrderByColumns():");
+            List<Column> columnList = visitor.getOrderByColumns();
+            for (Column col : columnList) {
+                System.out.println(col.getName() + " -> " + col.getFullName() + " -> " + col.getDataType());
+            }
+
+            // visitor.getTables():
             System.out.println("\n--> visitor.getTables():");
             Map<Name, TableStat> tableMap = visitor.getTables();
             Set<Name> setKey = tableMap.keySet();
@@ -60,6 +80,7 @@ public class DruidDemo {
                 System.out.println("key: " + key.getName() + " --> " + "value: " + tableMap.get(key));
             }
 
+            // visitor.getRelationships():
             System.out.println("\n--> visitor.getRelationships():");
             Set<Relationship> relationshipSet = visitor.getRelationships();
             for (Relationship rel : relationshipSet) {
