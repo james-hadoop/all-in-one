@@ -28,6 +28,10 @@ public class JamesUtil {
     }
 
     public static void printList(List<String> list) {
+        if (null == list || 0 == list.size()) {
+            return;
+        }
+
         for (int i = 0; i < list.size(); i++) {
             System.out.print(list.get(i));
             System.out.print("\t");
