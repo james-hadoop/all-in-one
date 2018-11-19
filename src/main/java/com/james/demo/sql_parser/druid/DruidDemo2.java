@@ -6,7 +6,6 @@ import java.util.Set;
 
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLStatement;
-import com.alibaba.druid.sql.ast.expr.SQLAggregateExpr;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
 import com.alibaba.druid.sql.repository.SchemaRepository;
 import com.alibaba.druid.stat.TableStat;
@@ -14,7 +13,6 @@ import com.alibaba.druid.stat.TableStat.Column;
 import com.alibaba.druid.stat.TableStat.Name;
 import com.alibaba.druid.stat.TableStat.Relationship;
 import com.alibaba.druid.util.JdbcConstants;
-import com.james.common.util.JamesUtil;
 
 public class DruidDemo2 {
 
@@ -26,13 +24,26 @@ public class DruidDemo2 {
 //                        .toString();
         // String sql = "select a,b,c from t_table";
 
-        String sql = "SELECT at_a.a_a, at_b.b_b\n" + "FROM (\n" + "    SELECT a_key, MAX(a_a) AS a_a, MAX(a_b) AS a_b\n"
-                + "        , MAX(a_c) AS a_c\n" + "    FROM t_a\n" + "    GROUP BY a_key\n" + "    ORDER BY a_c\n"
-                + ") at_a\n" + "    LEFT JOIN (\n" + "        SELECT b_key, MAX(b_a) AS b_a, MAX(b_b) AS b_b\n"
-                + "            , MAX(b_c) AS b_c\n" + "        FROM t_b\n" + "        GROUP BY b_key\n"
-                + "        ORDER BY b_c\n" + "    ) at_b\n" + "    ON at_a.a_key = at_b.b_key";
+        String sql = "SELECT tt.a_a AS f_a_a, tt.b_b AS f_b_b, tt.b_c AS f_b_c, at_b.same\n" + 
+                "FROM (\n" + 
+                "    SELECT a_key, MAX(a_a) AS a_a, MAX(a_b) AS a_b\n" + 
+                "        , MAX(a_c) AS a_c, MAX(same) AS same\n" + 
+                "    FROM t_a\n" + 
+                "    WHERE a_c = 3\n" + 
+                "    GROUP BY a_key\n" + 
+                "    ORDER BY a_a\n" + 
+                ") at_a\n" + 
+                "    LEFT JOIN (\n" + 
+                "        SELECT b_key, MAX(b_a) AS b_a, MAX(b_b) AS b_b\n" + 
+                "            , MAX(b_c) AS b_c, MAX(same) AS same\n" + 
+                "        FROM t_b\n" + 
+                "        GROUP BY b_key\n" + 
+                "        ORDER BY b_b\n" + 
+                "    ) at_b\n" + 
+                "    ON at_a.a_key = at_b.b_key AS tt";
 
-        System.out.println("sql: \n\t" + sql);
+        String result = SQLUtils.format(sql, dbType);
+        System.out.println("sql: \n" + result);
 
         List<SQLStatement> statementList = SQLUtils.parseStatements(sql, dbType);
 
@@ -43,7 +54,7 @@ public class DruidDemo2 {
             // visitor.getColumns():
             System.out.println("\n--> visitor.getColumns():");
             System.out.println(visitor.getColumns());
-            
+
             // visitor.getTables():
             System.out.println("\n--> visitor.getTables():");
             Map<Name, TableStat> tableMap = visitor.getTables();
@@ -51,8 +62,8 @@ public class DruidDemo2 {
             for (Name key : setKey) {
                 System.out.println("key: " + key.getName() + " --> " + "value: " + tableMap.get(key));
             }
-            
-            SchemaRepository sr=visitor.getRepository();
+
+            SchemaRepository sr = visitor.getRepository();
 
 //            // visitor.getAggregateFunctions()
 //            System.out.println("\n--> visitor.getAggregateFunctions():");

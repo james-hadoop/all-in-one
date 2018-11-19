@@ -1,5 +1,6 @@
 package com.james.demo.sql_parser.druid;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,7 @@ import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlASTVisitorAdapter;
 import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
+import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
 import com.alibaba.druid.stat.TableStat.Condition;
 import com.alibaba.druid.stat.TableStat.Name;
@@ -51,48 +53,13 @@ public class DruidDemo3 {
         List<SQLStatement> statementList = SQLUtils.parseStatements(sql, dbType);
         
         MySqlSchemaStatVisitor visitor = new MySqlSchemaStatVisitor();
-        MySqlSchemaStatVisitor visitor1 = new MySqlSchemaStatVisitor();
-        
-
-        SQLStatement statement = statementList.get(0);
-        
-     // statement.getChildren():
-        System.out.println("\n--> statement.getChildren():");
-        List<SQLObject> sqlObjList=statement.getChildren();
-        sqlObjList.get(0).accept(visitor1);
-//        statement.getParent().accept(visitor1);
-        // visitor.getColumns():
-        System.out.println("\n--> visitor.getColumns():");
-        System.out.println(visitor1.getColumns());
-        // visitor.getTables():
-        System.out.println("\n--> visitor.getTables():");
-        Map<Name, TableStat> tableMap1 = visitor1.getTables();
-        Set<Name> setKey1 = tableMap1.keySet();
-        for (Name key : setKey1) {
-            System.out.println("key: " + key.getName() + " --> " + "value: " + tableMap1.get(key));
-        }
-        
-        statement.accept(visitor);
-
-        // visitor.getColumns():
-        System.out.println("\n--> visitor.getColumns():");
-        System.out.println(visitor.getColumns());
-
-        // visitor.getTables():
-        System.out.println("\n--> visitor.getTables():");
-        Map<Name, TableStat> tableMap = visitor.getTables();
-        Set<Name> setKey = tableMap.keySet();
-        for (Name key : setKey) {
-            System.out.println("key: " + key.getName() + " --> " + "value: " + tableMap.get(key));
-        }
-
-        // visitor.getConditions():
-        System.out.println("\n--> visitor.getConditions():");
-        List<Condition> conditionList = visitor.getConditions();
-        for (Condition condition : conditionList) {
-            System.out.println(
-                    condition.getColumn() + " -> " + condition.getOperator() + " -> " + condition.getValues().get(0));
-
+        SchemaStatVisitor statVisitor = SQLUtils.createSchemaStatVisitor(dbType);
+        statementList.get(0).accept(visitor);
+        Collection<TableStat.Column> columns = visitor.getColumns();
+        for (TableStat.Column column : columns) {
+            if (column.isSelect()) {
+                System.out.println(column.toString());
+            }
         }
     }
 
