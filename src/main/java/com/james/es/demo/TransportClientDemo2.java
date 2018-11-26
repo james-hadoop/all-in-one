@@ -11,6 +11,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -23,18 +24,21 @@ public class TransportClientDemo2 {
     public static void main(String[] args) throws Exception {
         System.out.println("Hello Elasticsearch...");
 
-        Settings settings = Settings.builder().put("cluster.name", "data-es").put("client.transport.sniff", true).build();
+        Settings settings = Settings.builder().put("cluster.name", "james-es").put("client.transport.sniff", true)
+                .build();
         TransportClient client;
 
-        client = new PreBuiltTransportClient(settings).addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("s2-hadoop-test.esf.fdd"), 9300));
+        client = new PreBuiltTransportClient(settings).addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), 9300));
 
         SearchRequestBuilder srb1 = client.prepareSearch().setQuery(QueryBuilders.queryStringQuery("")).setSize(10);
-        SearchRequestBuilder srb2 = client.prepareSearch().setQuery(QueryBuilders.matchQuery("name", "Doe")).setSize(10);
-        SearchRequestBuilder srb3 = client.prepareSearch().setQuery(QueryBuilders.matchQuery("address", "mill")).setSize(10);
+        SearchRequestBuilder srb2 = client.prepareSearch().setQuery(QueryBuilders.matchQuery("name", "Doe"))
+                .setSize(10);
+        SearchRequestBuilder srb3 = client.prepareSearch().setQuery(QueryBuilders.matchQuery("address", "mill"))
+                .setSize(10);
         SearchRequestBuilder srb4 = client.prepareSearch().setQuery(QueryBuilders.matchAllQuery()).setSize(10);
 
         MultiSearchResponse sr = client.prepareMultiSearch().add(srb4)
-        // .add(srb2)
+                // .add(srb2)
                 .get();
 
         // You will get all individual responses from
@@ -53,7 +57,7 @@ public class TransportClientDemo2 {
             Iterator<SearchHit> iterator = hits.iterator();
             while (iterator.hasNext()) {
                 String record = iterator.next().getSourceAsString();
-                System.out.println("record: "+record);
+                System.out.println("record: " + record);
 
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);

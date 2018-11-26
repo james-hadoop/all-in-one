@@ -22,7 +22,7 @@ public class DruidDemo4 {
 
         String dbType = JdbcConstants.MYSQL;
 
-        String sql = "SELECT tt.a_a AS f_a_a, tt.b_b AS f_b_b, tt.b_c AS f_b_c, at_b.same\n" + "FROM (\n"
+        String sql = "SELECT tt.a_a AS f_a_a, tt.b_b AS f_b_b, tt.b_c AS f_b_c, at_b.b_same\n" + "FROM (\n"
                 + "    SELECT a_key, MAX(a_a) AS a_a, MAX(a_b) AS a_b\n"
                 + "        , MAX(a_c) AS a_c, MAX(same) AS same\n" + "    FROM t_a\n" + "    WHERE a_c = 3\n"
                 + "    GROUP BY a_key\n" + "    ORDER BY a_a\n" + ") at_a\n" + "    LEFT JOIN (\n"
@@ -78,7 +78,6 @@ public class DruidDemo4 {
             SQLTableSource tableSource = queryBlock.findTableSourceWithColumn(col);
             System.out.println("tableSource: " + tableSource.getAlias());
         }
-        
 
 //        // SQLTableSource
 //        System.out.println("\n--> queryBlock.findTableSourceWithColumn(\"b_same\"):");
