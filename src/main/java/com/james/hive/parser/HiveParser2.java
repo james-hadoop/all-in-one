@@ -477,7 +477,15 @@ public class HiveParser2 {
         
         String sql51="INSERT OVERWRITE TABLE unified_client_events_0_flattened SELECT * FROM ( SELECT a1,a2,a3 FROM unified_client_events_0 where a1 in ('USER_ACTION','SDCARD_CHANGE') UNION ALL SELECT b1,b2,b3 FROM unified_client_events_1 where b1 in ('CARD_INTERACTION')) stg_temp";
         
-        String parsesql = sql50;
+        String sql52 = "INSERT INTO t_target SELECT tt.a_a AS f_a_a, tt.b_b AS f_b_b, tt.b_c AS f_b_c, at_b.b_same "
+                + "FROM (" + "    SELECT a_key, MAX(a_a) AS a_a, MAX(a_b) AS a_b "
+                + "        , MAX(a_c) AS a_c, MAX(same) AS same " + "    FROM t_a " + "    WHERE a_c = 3 "
+                + "    GROUP BY a_key " + "    ORDER BY a_a " + ") at_a " + "    LEFT JOIN ( "
+                + "        SELECT b_key, MAX(b_a) AS b_a, MAX(b_b) AS b_b "
+                + "            , MAX(b_c) AS b_c, MAX(same) AS b_same " + "        FROM t_b " + "        GROUP BY b_key "
+                + "        ORDER BY b_b " + "    ) at_b " + "    ON at_a.a_key = at_b.b_key";
+        
+        String parsesql = sql52;
         HiveParser2 hp = new HiveParser2();
         System.out.println(parsesql);
         ASTNode ast = null;

@@ -5,12 +5,33 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import com.james.dataStructure.tree.BinTree.TreeNode;
 
 public class JamesUtil {
     public static void printDivider() {
         System.out.println("\n---------------------------------- divider ----------------------------------\n\n");
+    }
+
+    public static void printSet(Set<String> set) {
+        if (null == set || 0 == set.size()) {
+            return;
+        }
+
+        for (String s : set) {
+            System.out.println(s);
+        }
+    }
+
+    public static void printStack(Stack<String> stack) {
+        if (null == stack || 0 == stack.size()) {
+            return;
+        }
+
+        for (String s : stack) {
+            System.out.println(s);
+        }
     }
 
     public static void printArray(int[] arr) {
@@ -83,10 +104,10 @@ public class JamesUtil {
         if (null == list || 0 == list.size()) {
             return null;
         }
-        
+
         List<String> listClean = new ArrayList<String>();
 
-        for (int i=0;i<list.size();i++) {
+        for (int i = 0; i < list.size(); i++) {
             listClean.add(removeAsInString(list.get(i)));
         }
 
@@ -98,9 +119,9 @@ public class JamesUtil {
             return null;
         }
 
-        String text=str;
-        if(str.contains("AS")) {
-        text = str.substring(0, str.indexOf(" AS "));
+        String text = str;
+        if (str.contains("AS")) {
+            text = str.substring(0, str.indexOf(" AS "));
         }
 
         if (text.contains(".")) {
@@ -114,9 +135,9 @@ public class JamesUtil {
         String str = "tt.a_a AS f_a_a";
         String text = removeAsInString(str);
         System.out.println(text);
-        
-        String strArr="tt.a_a AS f_a_a,tt.b_b AS f_b_b";
-        List<String> list=removeAs(string2List(strArr, ","));
+
+        String strArr = "tt.a_a AS f_a_a,tt.b_b AS f_b_b";
+        List<String> list = removeAs(string2List(strArr, ","));
         JamesUtil.printList(list);
     }
 }
