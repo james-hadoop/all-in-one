@@ -1,4 +1,4 @@
-package com.james.netty.client;
+package com.james.netty.basic;
 
 import java.util.logging.Logger;
 
