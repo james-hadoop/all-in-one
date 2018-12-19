@@ -40,6 +40,7 @@ public class SubReqClientHandler extends ChannelHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) {
         for (int i = 0; i < 10; i++) {
             ctx.write(subReq(i));
+            System.out.println("client: "+subReq(i));
         }
         ctx.flush();
     }
