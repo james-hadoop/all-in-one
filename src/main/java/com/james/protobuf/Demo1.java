@@ -10,6 +10,7 @@ public class Demo1 {
 
     public static void main(String[] args) throws IOException {
         // build a object with protobuf
+        // protoc --java_out=. addressbook.proto
         Person john = Person.newBuilder().setId(1234).setName("John Doe").setEmail("jdoe@example.com")
                 .addPhones(Person.PhoneNumber.newBuilder().setNumber("555-4321").setType(Person.PhoneType.HOME))
                 .build();
