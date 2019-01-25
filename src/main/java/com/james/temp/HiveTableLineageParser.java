@@ -1,4 +1,4 @@
-package com.james.hive.parser;
+package com.james.temp;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,18 +12,23 @@ import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 
+import com.james.common.util.JamesUtil;
+
 /**
  * 目的：获取AST中的表，列，以及对其所做的操作，如SELECT,INSERT 重点：获取SELECT操作中的表和列的相关操作。其他操作这判断到表级别。
  * 实现思路：对AST深度优先遍历，遇到操作的token则判断当前的操作，
  * 遇到TOK_TAB或TOK_TABREF则判断出当前操作的表，遇到子句则压栈当前处理，处理子句。 子句处理完，栈弹出。
  *
  */
-public class HiveParser2 {
+public class HiveTableLineageParser {
+	private static String currentTableName = "";
 
 	private static final String UNKNOWN = "UNKNOWN";
-	private Map<String, String> alias = new HashMap<String, String>();
+
 	private Map<String, String> cols = new TreeMap<String, String>();
-	private Map<String, String> colAlais = new TreeMap<String, String>();
+	private Map<String, String> tableAliasMap = new HashMap<String, String>();
+	private Map<String, String> fieldAliasMap = new TreeMap<String, String>();
+	private Map<String, String> tgtFieldMap = new TreeMap<String, String>();
 
 	/**
 	 * tables存入的是每个表名以及表名对应的操作 String = tableName + "\t" + oper
@@ -41,7 +46,7 @@ public class HiveParser2 {
 	}
 
 	public Set<String> parseIteral(ASTNode ast) {// 属于深度解析
-		System.out.println(oper);
+		// System.out.println(oper);
 		Set<String> set = new HashSet<String>();// 当前查询所对应到的表集合
 		prepareToParseCurrentNodeAndChilds(ast);
 		set.addAll(parseChildNodes(ast));
@@ -79,7 +84,7 @@ public class HiveParser2 {
 					if (oper == Oper.SELECT) {
 						nowQueryTable = table;
 					}
-					tables.add(table + "\t" + oper);
+					tables.add(table + " <- " + oper);
 				}
 				break;
 
@@ -105,6 +110,9 @@ public class HiveParser2 {
 				tables.add(updatetab + "\t" + oper);
 				break;
 			case HiveParser.TOK_TABREF:// inputTable
+				currentTableName = ast.getChild(0).getChild(0).getText().toLowerCase();
+				System.out.println("currentTableName: " + currentTableName);
+
 				ASTNode tabTree = (ASTNode) ast.getChild(0);
 				String tableName = (tabTree.getChildCount() == 1)
 						? BaseSemanticAnalyzer.getUnescapedName((ASTNode) tabTree.getChild(0))
@@ -121,13 +129,13 @@ public class HiveParser2 {
 				tables.add(tableName + "\t" + oper);
 				if (ast.getChild(1) != null) {
 					String alia = ast.getChild(1).getText().toLowerCase();
-					alias.put(alia, tableName);// sql6 p别名在tabref只对应为一个表的别名。
+					tableAliasMap.put(alia, tableName);// sql6 p别名在tabref只对应为一个表的别名。
 				}
 				break;
 			case HiveParser.TOK_TABLE_OR_COL:
 				if (ast.getParent().getType() != HiveParser.DOT) {
 					String col = ast.getChild(0).getText().toLowerCase();
-					if (alias.get(col) == null && colAlais.get(nowQueryTable + "." + col) == null) {
+					if (tableAliasMap.get(col) == null && fieldAliasMap.get(nowQueryTable + "." + col) == null) {
 						if (nowQueryTable.indexOf("&") > 0) {// sql23
 							cols.put(UNKNOWN + "." + col, "");
 						} else {
@@ -140,8 +148,8 @@ public class HiveParser2 {
 				if (ast.getChildCount() > 0) {
 					ASTNode tree = (ASTNode) ast.getChild(0);
 					String selectTable = BaseSemanticAnalyzer.getUnescapedName((ASTNode) tree);
-					if (alias.get(selectTable) != null) {
-						selectTable = alias.get(selectTable);
+					if (tableAliasMap.get(selectTable) != null) {
+						selectTable = tableAliasMap.get(selectTable);
 					}
 					cols.put(selectTable + ".*", "");
 				} else {
@@ -162,26 +170,61 @@ public class HiveParser2 {
 						aliaReal = aliaReal.substring(0, aliaReal.length() - 1);
 					}
 					// alias.put(tableAlias, nowQueryTable);//sql22
-					alias.put(tableAlias, aliaReal);// sql6
+					tableAliasMap.put(tableAlias, aliaReal);// sql6
 					// alias.put(tableAlias, "");// just store alias
 				}
 				break;
 
 			case HiveParser.TOK_SELEXPR:
+				String fieldName = "";
+				String aliasFieldName = "";
+
 				if (ast.getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL) {
-					String column = ast.getChild(0).getChild(0).getText().toLowerCase();
-					if (nowQueryTable.indexOf("&") > 0) {
-						cols.put(UNKNOWN + "." + column, "");
-					} else if (colAlais.get(nowQueryTable + "." + column) == null) {
-						cols.put(nowQueryTable + "." + column, "");
+					fieldName = ast.getChild(0).getChild(0).getText().toLowerCase();
+					aliasFieldName = null == ast.getChild(1) ? fieldName : ast.getChild(1).getText().toLowerCase();
+
+					System.out.println("字段別名: " + currentTableName + "." + aliasFieldName + " -> " + fieldName);
+					fieldAliasMap.put(currentTableName + "." + aliasFieldName, currentTableName + "." + fieldName);
+				} else if (ast.getChild(0).getType() == HiveParser.TOK_FUNCTION) {
+					if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_TABLE_OR_COL) {
+						fieldName = ast.getChild(0).getChild(0).getText() + "("
+								+ ast.getChild(0).getChild(1).getChild(0).getText() + ")";
+						aliasFieldName = null == ast.getChild(1) ? fieldName : ast.getChild(1).getText().toLowerCase();
+
+						System.out.println("字段別名: " + currentTableName + "." + aliasFieldName + " -> " + fieldName);
+						fieldAliasMap.put(currentTableName + "." + aliasFieldName, currentTableName + "." + fieldName);
+
+					} else if (ast.getChild(0).getChild(1).getType() == HiveParser.DOT) {
+						String tgtTableName = ast.getChild(0).getChild(1).getChild(0).getChild(0).getText()
+								.toLowerCase();
+						String tgtFieldName = ast.getChild(0).getChild(0).getText() + "("
+								+ ast.getChild(0).getChild(1).getChild(1).getText() + ")";
+//					System.out.println("tgtTableName=" + tgtTableName + " && " + "tgtFieldName=" + tgtFieldName);
+
+						String tgtAliasFieldName = ast.getChild(1) == null ? tgtFieldName
+								: ast.getChild(1).getText().toLowerCase();
+
+						System.out
+								.println("--> 字段选择: " + tgtAliasFieldName + " -> " + tgtTableName + "." + tgtFieldName);
+						tgtFieldMap.put(tgtAliasFieldName, tgtTableName + "." + tgtFieldName);
 					}
-				} else if (ast.getChild(1) != null) {// TOK_SELEXPR (+
-														// (TOK_TABLE_OR_COL id)
-														// 1) dd
-					String columnAlia = ast.getChild(1).getText().toLowerCase();
-					colAlais.put(nowQueryTable + "." + columnAlia, "");
+
+				} else if (ast.getChild(0).getType() == HiveParser.DOT) {
+					if (ast.getChild(0).getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL) {
+						String tgtTableName = ast.getChild(0).getChild(0).getChild(0).getText().toLowerCase();
+						String tgtFieldName = ast.getChild(0).getChild(1).getText().toLowerCase();
+//					System.out.println("tgtTableName=" + tgtTableName + " && " + "tgtFieldName=" + tgtFieldName);
+
+						String tgtAliasFieldName = ast.getChild(1) == null ? tgtFieldName
+								: ast.getChild(1).getText().toLowerCase();
+
+						System.out
+								.println("--> 字段选择: " + tgtAliasFieldName + " -> " + tgtTableName + "." + tgtFieldName);
+						tgtFieldMap.put(tgtAliasFieldName, tgtTableName + "." + tgtFieldName);
+					}
 				}
 				break;
+
 			case HiveParser.DOT:
 				if (ast.getType() == HiveParser.DOT) {
 					if (ast.getChildCount() == 2) {
@@ -193,16 +236,16 @@ public class HiveParser2 {
 							String column = BaseSemanticAnalyzer
 									.unescapeIdentifier(ast.getChild(1).getText().toLowerCase());
 							String realTable = null;
-							if (!tables.contains(alia + "\t" + oper) && alias.get(alia) == null) {// [b
-																									// SELECT,
-																									// a
-																									// SELECT]
-								alias.put(alia, nowQueryTable);
+							if (!tables.contains(alia + "\t" + oper) && tableAliasMap.get(alia) == null) {// [b
+								// SELECT,
+								// a
+								// SELECT]
+								tableAliasMap.put(alia, nowQueryTable);
 							}
 							if (tables.contains(alia + "\t" + oper)) {
 								realTable = alia;
-							} else if (alias.get(alia) != null) {
-								realTable = alias.get(alia);
+							} else if (tableAliasMap.get(alia) != null) {
+								realTable = tableAliasMap.get(alia);
 							}
 							if (realTable == null || realTable.length() == 0 || realTable.indexOf("&") > 0) {
 								realTable = UNKNOWN;
@@ -366,22 +409,26 @@ public class HiveParser2 {
 		java.util.Iterator<String> it = map.keySet().iterator();
 		while (it.hasNext()) {
 			String key = it.next();
-			System.out.println(key + "    \t" + map.get(key));
+			System.out.println(key + " -> " + map.get(key));
 		}
 	}
 
 	public void parse(ASTNode ast) {
 		parseIteral(ast);
+
+		System.out.println("***************目标字段***************");
+		output(tgtFieldMap);
+		System.out.println("***************表别名***************");
+		output(tableAliasMap);
+		System.out.println("***************字段别名***************");
+		output(fieldAliasMap);
 		System.out.println("***************表***************");
 		for (String table : tables) {
 			System.out.println(table);
 		}
-		System.out.println("***************列***************");
-		output(cols);
-		System.out.println("***************表别名***************");
-		output(alias);
-		System.out.println("***************列别名***************");
-		output(colAlais);
+//		System.out.println("***************列***************");
+//		output(cols);
+
 	}
 
 	public static void main(String[] args) {
@@ -481,16 +528,23 @@ public class HiveParser2 {
 
 		String sql51 = "INSERT OVERWRITE TABLE unified_client_events_0_flattened SELECT * FROM ( SELECT a1,a2,a3 FROM unified_client_events_0 where a1 in ('USER_ACTION','SDCARD_CHANGE') UNION ALL SELECT b1,b2,b3 FROM unified_client_events_1 where b1 in ('CARD_INTERACTION')) stg_temp";
 
-		String sql52 = "INSERT INTO TABLE t_target SELECT tt.r_a_a AS f_a_a, tt.b_b AS f_b_b, tt.b_c AS f_b_c, at_b.b_same "
-				+ "FROM (" + "    SELECT a_key, MAX(a_a) AS r_a_a, MAX(a_b) AS r_a_b "
-				+ "        , MAX(a_c) AS r_a_c, MAX(same) AS r_same " + "    FROM t_a " + "    WHERE a_c = 3 "
-				+ "    GROUP BY a_key " + "    ORDER BY a_a " + ") at_a " + "    LEFT JOIN ( "
-				+ "        SELECT b_key, MAX(b_a) AS b_a, MAX(b_b) AS b_b "
-				+ "            , MAX(b_c) AS b_c, MAX(same) AS b_same " + "        FROM t_b "
-				+ "        GROUP BY b_key " + "        ORDER BY b_b " + "    ) at_b "
-				+ "    ON at_a.a_key = at_b.b_key";
+		String sql52 = "INSERT INTO TABLE t_target \r\n"
+				+ "SELECT r_t_a.r_a_a AS f_a_a, r_t_b.r_b_b AS f_b_b, r_t_b.r_b_c AS f_b_c, r_t_a.same FROM (\r\n"
+				+ "SELECT a_key, a_a r_a_a, a_b AS r_a_b, MAX(a_c) AS r_a_c, MAX(same) AS same FROM t_a WHERE a_a = 1 GROUP BY a_key, a_a, a_b ORDER BY a_a desc) r_t_a \r\n"
+				+ "LEFT JOIN (\r\n"
+				+ "SELECT b_key, MAX(b_a) AS r_b_a, MAX(b_b) AS r_b_b, MAX(b_c) AS r_b_c, MAX(same) AS same FROM t_b GROUP BY b_key ORDER BY b_b) r_t_b ON r_t_a.a_key = r_t_b.b_key";
 
-		String sql52_a = "SELECT a_key, MAX(a_a) AS r_a_a, MAX(a_b) AS r_a_b, MAX(a_c) AS r_a_c, MAX(same) AS r_same     FROM t_a WHERE a_c = 3 GROUP BY a_key ORDER BY a_a desc";
+		String sql52_a = "SELECT a_key, a_a r_a_a, a_b AS r_a_b, MAX(a_c) AS r_a_c FROM t_a WHERE a_a = 1 GROUP BY a_key, a_a, a_b ORDER BY a_a desc";
+
+		String sql52_b = "INSERT INTO TABLE t_target \r\n"
+				+ "SELECT MAX(r_t_a.r_a_a) AS f_a_a, r_t_b.r_b_b AS f_b_b\r\n" + "FROM (\r\n"
+				+ "	SELECT a_key, a_a AS r_a_a, a_b AS r_a_b, MAX(a_c) AS r_a_c\r\n" + "		, MAX(same) AS same\r\n"
+				+ "	FROM t_a\r\n" + "	WHERE a_a = 1\r\n" + "	GROUP BY a_key, a_a, a_b\r\n"
+				+ "	ORDER BY a_a DESC\r\n" + ") r_t_a\r\n" + "	LEFT JOIN (\r\n"
+				+ "		SELECT b_key, MAX(b_a) AS r_b_a, MAX(b_b) AS r_b_b\r\n"
+				+ "			, MAX(b_c) AS r_b_c, MAX(same) AS same\r\n" + "		FROM t_b\r\n"
+				+ "		GROUP BY b_key\r\n" + "		ORDER BY b_b\r\n" + "	) r_t_b\r\n"
+				+ "	ON r_t_a.a_key = r_t_b.b_key";
 
 		String sql53 = "insert into t_all_video_play_basic_info  "
 				+ "SELECT SUBSTR(tdbank_imp_date, 1, 8) AS fdate ,\r\n"
@@ -533,8 +587,10 @@ public class HiveParser2 {
 				+ "WHERE SUBSTR(tdbank_imp_date, 1, 8) = 20180115\r\n"
 				+ "  AND op_type IN ( '0X8007408' ,'0X8007409' )";
 
-		String parsesql = sql52;
-		HiveParser2 hp = new HiveParser2();
+		String parsesql = sql52_a;
+//		String parsesql = sql52;
+//		String parsesql = sql52_b;
+		HiveTableLineageParser hp = new HiveTableLineageParser();
 		System.out.println(parsesql);
 		ASTNode ast = null;
 		try {
@@ -543,8 +599,9 @@ public class HiveParser2 {
 			e.printStackTrace();
 		}
 		System.out.println(ast.toStringTree());
+		JamesUtil.printDivider();
 		hp.parse(ast);
-		System.out.println(hp.oper);
+//		System.out.println(hp.oper);
 
 	}
 }

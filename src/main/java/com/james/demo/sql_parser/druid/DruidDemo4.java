@@ -30,6 +30,8 @@ public class DruidDemo4 {
                 + "            , MAX(b_c) AS b_c, MAX(same) AS b_same\n" + "        FROM t_b\n"
                 + "        GROUP BY b_key\n" + "        ORDER BY b_b\n" + "    ) at_b\n"
                 + "    ON at_a.a_key = at_b.b_key AS tt";
+        
+        
 
         sql = sql.toLowerCase();
         System.out.println("sql: \n\t" + sql);
