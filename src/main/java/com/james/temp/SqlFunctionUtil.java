@@ -11,7 +11,7 @@ public class SqlFunctionUtil {
         String s6 = "nvl(a,b)";
         String s7 = "james.hi";
 
-        String sqlFunction = s7;
+        String sqlFunction = s2;
 
         System.out.println("before: " + sqlFunction);
         System.out.println("after:  " + removeSqlFunctionName(sqlFunction));
@@ -59,7 +59,7 @@ public class SqlFunctionUtil {
         return content.substring(content.lastIndexOf("(") + 1, content.indexOf(")"));
     }
 
-    private static String getTableName(String content) {
+    public static String getTableName(String content) {
         if (null == content || 0 == content.length()) {
             return null;
         }
@@ -75,7 +75,7 @@ public class SqlFunctionUtil {
         return content.substring(0, content.indexOf("."));
     }
 
-    private static String getTableData(String content) {
+    public static String getTableData(String content) {
         if (null == content || 0 == content.length()) {
             return null;
         }
