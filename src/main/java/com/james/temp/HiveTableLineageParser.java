@@ -1,7 +1,9 @@
 package com.james.temp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -22,6 +24,8 @@ import com.james.common.util.JamesUtil;
  */
 public class HiveTableLineageParser {
 	private static String currentTableName = "";
+	private static List<TableNode> srcTables = new ArrayList<TableNode>();
+	private static TableNode tgtTable = new TableNode();
 
 	private static final String UNKNOWN = "UNKNOWN";
 
@@ -74,6 +78,7 @@ public class HiveTableLineageParser {
 		}
 	}
 
+	/* parseCurrentNode */
 	private Set<String> parseCurrentNode(ASTNode ast, Set<String> set) {
 		if (ast.getToken() != null) {
 			switch (ast.getToken().getType()) {
@@ -84,7 +89,7 @@ public class HiveTableLineageParser {
 					if (oper == Oper.SELECT) {
 						nowQueryTable = table;
 					}
-					tables.add(table + " <- " + oper);
+//					tables.add(table + " <- " + oper);
 				}
 				break;
 
@@ -94,6 +99,7 @@ public class HiveTableLineageParser {
 					nowQueryTable = tableTab;
 				}
 				tables.add(tableTab + "\t" + oper);
+				tgtTable.setTableName(tableTab);
 				break;
 			case HiveParser.TOK_DELETE_FROM:// outputTable
 				String deletetab = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));
@@ -127,6 +133,7 @@ public class HiveTableLineageParser {
 					set.add(tableName);
 				}
 				tables.add(tableName + "\t" + oper);
+				srcTables.add(new TableNode(tableName));
 				if (ast.getChild(1) != null) {
 					String alia = ast.getChild(1).getText().toLowerCase();
 					tableAliasMap.put(alia, tableName);// sql6 p别名在tabref只对应为一个表的别名。
@@ -587,9 +594,9 @@ public class HiveTableLineageParser {
 				+ "WHERE SUBSTR(tdbank_imp_date, 1, 8) = 20180115\r\n"
 				+ "  AND op_type IN ( '0X8007408' ,'0X8007409' )";
 
-		String parsesql = sql52_a;
+//		String parsesql = sql52_a;
 //		String parsesql = sql52;
-//		String parsesql = sql52_b;
+		String parsesql = sql52_b;
 		HiveTableLineageParser hp = new HiveTableLineageParser();
 		System.out.println(parsesql);
 		ASTNode ast = null;
@@ -603,5 +610,13 @@ public class HiveTableLineageParser {
 		hp.parse(ast);
 //		System.out.println(hp.oper);
 
+		JamesUtil.printDivider();
+//		System.out.println(tgtTable.getTableName());
+//		for (TableNode t : srcTables) {
+//			System.out.println(t.getTableName());
+//		}
+
+		TableRelation tableRelation = new TableRelation(srcTables, tgtTable);
+		System.out.println(tableRelation);
 	}
 }
