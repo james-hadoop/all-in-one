@@ -15,6 +15,9 @@ import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 
 import com.james.common.util.JamesUtil;
+import com.james.hive.parser.entity.TableNode;
+import com.james.hive.parser.entity.TableRelation;
+import com.james.temp.SqlFunctionUtil;
 
 /**
  * 目的：获取AST中的表，列，以及对其所做的操作，如SELECT,INSERT 重点：获取SELECT操作中的表和列的相关操作。其他操作这判断到表级别。
