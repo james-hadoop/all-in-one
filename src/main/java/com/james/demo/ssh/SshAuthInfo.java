@@ -69,7 +69,7 @@ public class SshAuthInfo {
 
         session.connect();
 
-        String command = "cp /home/james/logs/Template.log /home/james/logs/test";
+        String command = "cp /home/james/logs/Template.log /home/james/logs/Template-dup.log";
         Channel channel = session.openChannel("exec");
         ((ChannelExec) channel).setCommand(command);
         channel.setInputStream(null);
