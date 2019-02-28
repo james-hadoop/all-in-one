@@ -35,6 +35,7 @@ public class HiveTableLineageParserTable {
     private Set<String> tables = new HashSet<String>();
 
     private Stack<String> tableNameStack = new Stack<String>();
+    private Stack<String> tableAliasNameStack = new Stack<String>();
     private Stack<Oper> operStack = new Stack<Oper>();
     private String nowQueryTable = "";// 定义及处理不清晰，修改为query或from节点对应的table集合或许好点。目前正在查询处理的表可能不止一个。
     private Oper oper;
@@ -184,6 +185,9 @@ public class HiveTableLineageParserTable {
                     tableAliasMap.put(tableAlias.toLowerCase(), aliaReal);// sql6
                     // alias.put(tableAlias, "");// just store alias
                     System.out.println("tableAlias: "+tableAlias);
+                    System.out.println("\tcurrentTableName: "+currentTableName);
+                    tableAliasNameStack.pop();
+                    tableAliasNameStack.push(tableAlias);
                 }
                 break;
 
