@@ -36,9 +36,9 @@ public class SqlFunctionUtil {
 
         String tableCol = removeBrackets(tableData);
 
-        System.out.println(tableName);
-        System.out.println(tableData);
-        System.out.println(tableCol);
+//        System.out.println(tableName);
+//        System.out.println(tableData);
+//        System.out.println(tableCol);
 
         if (tableName.equals(tableData)) {
             return tableCol;
