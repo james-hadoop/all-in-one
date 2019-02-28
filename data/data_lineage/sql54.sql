@@ -1,6 +1,6 @@
 INSERT INTO TABLE t_kandian_account_video_uv_daily_new
 SELECT 20190226 ,
-       C.puin ,
+       C.puin as puin,
        C.row_key ,
        CASE
            WHEN SOURCE IN('1' ,'3') THEN 1

@@ -81,6 +81,18 @@ public class JamesUtil {
         }
         System.out.println();
     }
+    
+    public static void printStringMap(Map<String, String> map) {
+        if (null == map || 0 == map.size()) {
+            return;
+        }
+
+        Set<String> setKey = map.keySet();
+        for (String key : setKey) {
+            System.out.println("key: " + key + " --> " + "value: " + map.get(key));
+        }
+        System.out.println();
+    }
 
     public static List<String> string2List(String str, String divider) {
         if (null == str || 0 == str.length() || null == divider || 0 == divider.length()) {
