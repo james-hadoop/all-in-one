@@ -12,7 +12,7 @@ import java.util.List;
 public class QuoteAdder {
 
 	public static void main(String[] args) throws IOException {
-		int ret = addQuote("data/rowkey/all_qie.txt", "data/rowkey/all_qie_des.txt");
+		int ret = addQuote("data/rowkey/src.txt", "data/rowkey/des.txt");
 		System.out.println("The result is: " + ret);
 	}
 

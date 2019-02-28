@@ -81,7 +81,7 @@ public class DruidDemo2 {
             Set<Column> columnSet = visitor.getGroupByColumns();
             for (Column col : columnSet) {
                 System.out.println(col.getName() + " -> " + col.getFullName() + " -> " + col.getDataType());
-            }
+            } 
 
             // visitor.getOrderByColumns():
             System.out.println("\n--> visitor.getOrderByColumns():");
