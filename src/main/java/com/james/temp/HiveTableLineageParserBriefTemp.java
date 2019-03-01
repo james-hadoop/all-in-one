@@ -23,14 +23,14 @@ public class HiveTableLineageParserBriefTemp {
 	 */
 	private static List<TableNode> srcTables = new ArrayList<TableNode>();
 	private static TableNode tgtTable = new TableNode();
-	
+
 	/*
 	 * alias tables and fields
 	 */
 	private static Map<String, String> tableAliasMap = new HashMap<String, String>();
 	private static Map<String, String> fieldAliasMap = new TreeMap<String, String>();
 	private static Map<String, String> insertSelectFieldMap = new TreeMap<String, String>();
-	
+
 	/*
 	 * 2 stacks for generating alias table map
 	 */
@@ -42,17 +42,14 @@ public class HiveTableLineageParserBriefTemp {
 	 * tables存入的是每个表名以及表名对应的操作 String = tableName + "\t" + OPER
 	 */
 	private Set<String> tables = new HashSet<String>();
-	private Stack<String> tableAliasNameStack = new Stack<String>();
-	private Stack<String> tableNameStack = new Stack<String>();
 	private Stack<Oper> operStack = new Stack<Oper>();
-	private String nowQueryTable = "";// 定义及处理不清晰，修改为query或from节点对应的table集合或许好点。目前正在查询处理的表可能不止一个。
 	private Oper oper;
-	
+
 	private enum Oper {
 		SELECT, INSERT, TRUNCATE, LOAD, CREATE＿TABLE, ALTER, DROP_TABLE, SHOW, DELETE, UPDATE, DESC
 	}
 
-    // parseCurrentNode
+	// parseCurrentNode
 	private Set<String> parseCurrentNode(ASTNode ast, Set<String> set) {
 		if (ast.getToken() != null) {
 			switch (ast.getToken().getType()) {
@@ -85,11 +82,6 @@ public class HiveTableLineageParserBriefTemp {
 
 					tableAliasMap.put(tableAlias.toLowerCase(), aliaReal);
 
-					if (tableAliasNameStack.size() > 0) {
-						tableAliasNameStack.pop();
-					}
-					tableAliasNameStack.push(tableAlias.toLowerCase());
-
 					if (tokDbNameStack.size() > 0) {
 						String tokDBAliasName = tokDbNameStack.peek();
 						String tokTableAliasName = tokTableNameStack.peek();
@@ -119,37 +111,21 @@ public class HiveTableLineageParserBriefTemp {
 				}
 				break;
 
-			case HiveParser.TOK_TABLE_PARTITION:
-				// case HiveParser.TOK_TABNAME:
-				if (ast.getChildCount() != 2) {
-					String table = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));
-					if (oper == Oper.SELECT) {
-						nowQueryTable = table;
-					}
-				}
-				break;
-
 			case HiveParser.TOK_TAB:// outputTable
 				String tableTab = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));
-				if (oper == Oper.SELECT) {
-					nowQueryTable = tableTab;
-				}
-				tables.add(tableTab + "\t" + oper);
+
+				tables.add(tableTab + "\t" + Oper.SELECT);
 				tgtTable.setTableName(tableTab);
 				break;
 			case HiveParser.TOK_DELETE_FROM:// outputTable
 				String deletetab = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));
-				if (oper == Oper.DELETE) {
-					nowQueryTable = deletetab;
-				}
-				tables.add(deletetab + "\t" + oper);
+
+				tables.add(deletetab + "\t" + Oper.DELETE);
 				break;
 			case HiveParser.TOK_UPDATE_TABLE:// outputTable
 				String updatetab = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));
-				if (oper == Oper.UPDATE) {
-					nowQueryTable = updatetab;
-				}
-				tables.add(updatetab + "\t" + oper);
+
+				tables.add(updatetab + "\t" + Oper.UPDATE);
 				break;
 			case HiveParser.TOK_TABREF:// inputTable
 				ASTNode tabTree = (ASTNode) ast.getChild(0);
@@ -178,10 +154,8 @@ public class HiveTableLineageParserBriefTemp {
 					fieldName = ast.getChild(0).getChild(0).getText().toLowerCase();
 					aliasFieldName = null == ast.getChild(1) ? fieldName : ast.getChild(1).getText().toLowerCase();
 
-					System.out.println(
-							"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + fieldName);
-					fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName,
-							fieldName);
+					System.out.println("字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + fieldName);
+					fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName, fieldName);
 				} else if (ast.getChild(0).getType() == HiveParser.TOK_FUNCTION) {
 					if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_TABLE_OR_COL) {
 						fieldName = ast.getChild(0).getChild(0).getText() + "("
@@ -192,8 +166,7 @@ public class HiveTableLineageParserBriefTemp {
 
 						System.out.println(
 								"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + cleanFieldName);
-						fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName,
-								cleanFieldName);
+						fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName, cleanFieldName);
 
 					} else if (ast.getChild(0).getChild(1).getType() == HiveParser.DOT) {
 						String tgtTableName = ast.getChild(0).getChild(1).getChild(0).getChild(0).getText()
@@ -205,7 +178,8 @@ public class HiveTableLineageParserBriefTemp {
 
 						System.out.println("字段别名: " + tokTableNameStack.peek() + "." + tgtAliasFieldName + " -> "
 								+ tgtTableName + "." + tgtCleanFieldName);
-						fieldAliasMap.put(tokTableNameStack.peek() + "." + tgtAliasFieldName, tgtTableName + "." + tgtCleanFieldName);
+						fieldAliasMap.put(tokTableNameStack.peek() + "." + tgtAliasFieldName,
+								tgtTableName + "." + tgtCleanFieldName);
 
 					}
 
@@ -213,15 +187,13 @@ public class HiveTableLineageParserBriefTemp {
 					if (ast.getChild(0).getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL) {
 						String tgtTableName = ast.getChild(0).getChild(0).getChild(0).getText().toLowerCase();
 						String tgtFieldName = ast.getChild(0).getChild(1).getText().toLowerCase();
-						// System.out.println("tgtTableName=" + tgtTableName + " && " + "tgtFieldName="
-						// + tgtFieldName);
-
 						String tgtAliasFieldName = ast.getChild(1) == null ? tgtFieldName
 								: ast.getChild(1).getText().toLowerCase();
 
 						System.out.println("字段别名: " + tokTableNameStack.peek() + "." + tgtAliasFieldName + " -> "
 								+ tgtTableName + "." + tgtFieldName);
-						fieldAliasMap.put(tokTableNameStack.peek() + "." + tgtAliasFieldName, tgtTableName + "." + tgtFieldName);
+						fieldAliasMap.put(tokTableNameStack.peek() + "." + tgtAliasFieldName,
+								tgtTableName + "." + tgtFieldName);
 
 					}
 				} else if (ast.getChild(0).getType() == HiveParser.TOK_FUNCTIONDI) {
@@ -230,35 +202,7 @@ public class HiveTableLineageParserBriefTemp {
 
 					System.out.println(
 							"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + cleanFieldName);
-					fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName,
-							cleanFieldName);
-				}
-				break;
-			case HiveParser.DOT:
-				if (ast.getType() == HiveParser.DOT) {
-					if (ast.getChildCount() == 2) {
-						if (ast.getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL
-								&& ast.getChild(0).getChildCount() == 1
-								&& ast.getChild(1).getType() == HiveParser.Identifier) {
-							String alia = BaseSemanticAnalyzer
-									.unescapeIdentifier(ast.getChild(0).getChild(0).getText().toLowerCase());
-////							String column = BaseSemanticAnalyzer
-////									.unescapeIdentifier(ast.getChild(1).getText().toLowerCase());
-//////							String realTable = null;
-////							if (!tables.contains(alia + "\t" + oper) && tableAliasMap.get(alia.toLowerCase()) == null) {
-////								// [b
-////								// SELECT,
-////								// a
-////								// SELECT]
-////								tableAliasMap.put(alia.toLowerCase(), nowQueryTable);
-////							}
-//							if (tables.contains(alia + "\t" + oper)) {
-//								realTable = alia;
-//							} else if (tableAliasMap.get(alia.toLowerCase()) != null) {
-//								realTable = tableAliasMap.get(alia.toLowerCase());
-//							}
-						}
-					}
+					fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName, cleanFieldName);
 				}
 				break;
 			case HiveParser.TOK_INSERT_INTO:
@@ -377,7 +321,6 @@ public class HiveTableLineageParserBriefTemp {
 			switch (ast.getToken().getType()) {
 			case HiveParser.TOK_INSERT:
 			case HiveParser.TOK_SELECT:
-				nowQueryTable = tableNameStack.pop();
 				oper = operStack.pop();
 				break;
 			}
@@ -395,7 +338,7 @@ public class HiveTableLineageParserBriefTemp {
 		}
 		return set;
 	}
-	
+
 	/**
 	 * 
 	 * @param ast
@@ -404,30 +347,22 @@ public class HiveTableLineageParserBriefTemp {
 		if (ast.getToken() != null) {
 			switch (ast.getToken().getType()) {
 			case HiveParser.TOK_QUERY:
-				tableNameStack.push(nowQueryTable);
 				operStack.push(oper);
-				nowQueryTable = "";// sql22
 				oper = Oper.SELECT;
 				break;
 			case HiveParser.TOK_INSERT:
-				tableNameStack.push(nowQueryTable);
 				operStack.push(oper);
 				oper = Oper.INSERT;
 				break;
 			case HiveParser.TOK_DELETE_FROM:
-				tableNameStack.push(nowQueryTable);
 				operStack.push(oper);
 				oper = Oper.DELETE;
-				nowQueryTable = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));// sql22
 				break;
 			case HiveParser.TOK_UPDATE_TABLE:
-				tableNameStack.push(nowQueryTable);
 				operStack.push(oper);
 				oper = Oper.UPDATE;
-				nowQueryTable = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));// sql22
 				break;
 			case HiveParser.TOK_SELECT:
-				tableNameStack.push(nowQueryTable);
 				operStack.push(oper);
 				oper = Oper.SELECT;
 				break;
@@ -511,10 +446,10 @@ public class HiveTableLineageParserBriefTemp {
 		hp.parse(ast);
 
 		JamesUtil.printDivider();
-		 System.out.println(tgtTable.getTableName());
-		 for (TableNode t : srcTables) {
-		 System.out.println(t.getTableName());
-		 }
+		System.out.println(tgtTable.getTableName());
+		for (TableNode t : srcTables) {
+			System.out.println(t.getTableName());
+		}
 
 		TableRelation tableRelation = new TableRelation(srcTables, tgtTable);
 		System.out.println(tableRelation);
