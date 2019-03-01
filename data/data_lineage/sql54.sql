@@ -1,13 +1,19 @@
 INSERT INTO TABLE t_kandian_account_video_uv_daily_new
-SELECT 20190226 ,
-       C.puin as puin,
+SELECT 20190226,
+       'aaaaa' AS s_a,
+       C.puin puin ,
        C.row_key ,
        CASE
            WHEN SOURCE IN('1' ,'3') THEN 1
            ELSE 0
        END AS is_kd_source ,
-       uv ,
-       vv
+       CASE
+           WHEN SOURCE='hello' THEN 1
+           ELSE 0
+       END AS s_kd_source ,
+       uv,
+       vv a_vv,
+       c.uu c_uv
 FROM
   (SELECT puin ,
           A.row_key ,

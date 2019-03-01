@@ -49,43 +49,76 @@ public class HiveTableLineageParserBrief {
 	private Oper oper;
 	private boolean joinClause = false;
 
+	// james debug
+	private static List<String> tokList = new ArrayList<String>();
+	private static Stack<String> tokFromStack = new Stack<String>();
+	private static Stack<String> tokSubQueryStack = new Stack<String>();
+
 	private enum Oper {
 		SELECT, INSERT, TRUNCATE, LOAD, CREATE＿TABLE, ALTER, DROP_TABLE, SHOW, DELETE, UPDATE, DESC
-	}
-
-	public Set<String> parseIteral(ASTNode ast) {// 属于深度解析
-		// System.out.println(oper);
-		Set<String> set = new HashSet<String>();// 当前查询所对应到的表集合
-		prepareToParseCurrentNodeAndChilds(ast);
-		set.addAll(parseChildNodes(ast));
-		set.addAll(parseCurrentNode(ast, set));
-		endParseCurrentNode(ast);
-		return set;
-	}
-
-	private void endParseCurrentNode(ASTNode ast) {
-		if (ast.getToken() != null) {
-			switch (ast.getToken().getType()) {// join 从句结束，跳出join
-			case HiveParser.TOK_RIGHTOUTERJOIN:
-			case HiveParser.TOK_LEFTOUTERJOIN:
-			case HiveParser.TOK_JOIN:
-				joinClause = false;
-				break;
-			case HiveParser.TOK_QUERY:
-				break;
-			case HiveParser.TOK_INSERT:
-			case HiveParser.TOK_SELECT:
-				nowQueryTable = tableNameStack.pop();
-				oper = operStack.pop();
-				break;
-			}
-		}
 	}
 
 	/* parseCurrentNode */
 	private Set<String> parseCurrentNode(ASTNode ast, Set<String> set) {
 		if (ast.getToken() != null) {
 			switch (ast.getToken().getType()) {
+			case HiveParser.TOK_FROM:
+				String tokDbName = "";
+				String tokTableName = "";
+				if (ast.getChild(0).getChild(0).getChildCount() == 1) {
+					// 不带库名
+					tokTableName = ast.getChild(0).getChild(0).getChild(0).getText().toLowerCase();
+				} else if (ast.getChild(0).getChild(0).getChildCount() == 2) {
+					// 带库名
+					tokDbName = ast.getChild(0).getChild(0).getChild(0).getText().toLowerCase();
+					tokTableName = ast.getChild(0).getChild(0).getChild(1).getText().toLowerCase();
+				}
+				tokList.add("TOK_FROM: " + tokDbName + "." + tokTableName);
+				tokFromStack.push(tokDbName + "." + tokTableName);
+
+				if (tableRealAndAliasNameStack.size() > 0) {
+					tableRealAndAliasNameStack.pop();
+				}
+				tableRealAndAliasNameStack.push(tokTableName.toLowerCase());
+				break;
+
+			case HiveParser.TOK_SUBQUERY:
+				if (ast.getChildCount() == 2) {
+					String tableAlias = unescapeIdentifier(ast.getChild(1).getText());
+					String aliaReal = "";
+					for (String table : set) {
+						aliaReal += table + "&";
+					}
+					if (aliaReal.length() != 0) {
+						aliaReal = aliaReal.substring(0, aliaReal.length() - 1);
+					}
+
+					tableAliasMap.put(tableAlias.toLowerCase(), aliaReal);
+
+					if (tableAliasNameStack.size() > 0) {
+						tableAliasNameStack.pop();
+					}
+					tableAliasNameStack.push(tableAlias.toLowerCase());
+					
+					// TODO
+					String strTokFrom=tokFromStack.peek();
+					if (!tokFromStack.peek().contains("tok_query")) {
+						tokSubQueryStack.push(tableAlias.toLowerCase());
+
+						if (tableRealAndAliasNameStack.size() > 0) {
+							tableRealAndAliasNameStack.pop();
+						}
+						tableRealAndAliasNameStack.push(tableAlias.toLowerCase());
+
+						String tokDbName1 = "";
+						String tokTableName1 = tableAlias.toLowerCase();
+						tokList.add("TOK_SUBQUERY: " + tokDbName1 + "." + tokTableName1);
+					}else {
+						tokSubQueryStack.push(strTokFrom.substring(strTokFrom.indexOf(".")+1,strTokFrom.length()));
+					}
+				}
+				break;
+
 			case HiveParser.TOK_TABLE_PARTITION:
 				// case HiveParser.TOK_TABNAME:
 				if (ast.getChildCount() != 2) {
@@ -187,31 +220,6 @@ public class HiveTableLineageParserBrief {
 			case HiveParser.TOK_FUNCTIONSTAR:
 				cols.put(nowQueryTable + ".*", "");
 				break;
-			case HiveParser.TOK_SUBQUERY:
-				if (ast.getChildCount() == 2) {
-					String tableAlias = unescapeIdentifier(ast.getChild(1).getText());
-					String aliaReal = "";
-					for (String table : set) {
-						aliaReal += table + "&";
-					}
-					if (aliaReal.length() != 0) {
-						aliaReal = aliaReal.substring(0, aliaReal.length() - 1);
-					}
-
-					tableAliasMap.put(tableAlias.toLowerCase(), aliaReal);
-
-					if (tableAliasNameStack.size() > 0) {
-						tableAliasNameStack.pop();
-					}
-					tableAliasNameStack.push(tableAlias.toLowerCase());
-
-					if (tableRealAndAliasNameStack.size() > 0) {
-						tableRealAndAliasNameStack.pop();
-					}
-					tableRealAndAliasNameStack.push(tableAlias.toLowerCase());
-				}
-				break;
-
 			case HiveParser.TOK_SELEXPR:
 				// TODO CASE WHEN
 
@@ -223,11 +231,12 @@ public class HiveTableLineageParserBrief {
 					fieldName = ast.getChild(0).getChild(0).getText().toLowerCase();
 					aliasFieldName = null == ast.getChild(1) ? fieldName : ast.getChild(1).getText().toLowerCase();
 
-					fieldAliasMap.put(tableRealAndAliasNameStack.peek() + "." + aliasFieldName,
+					String thisTableName=tokSubQueryStack.size()==0?tableRealAndAliasNameStack.peek():tokSubQueryStack.peek();
+					fieldAliasMap.put(thisTableName + "." + aliasFieldName,
 							currentTableName + "." + fieldName);
 
 					if (tableRealAndAliasNameStack.size() > 0) {
-						System.out.println("字段別名: " + tableRealAndAliasNameStack.peek() + "." + aliasFieldName + " -> "
+						System.out.println("字段別名: " + thisTableName + "." + aliasFieldName + " -> "
 								+ fieldName);
 					}
 				} else if (ast.getChild(0).getType() == HiveParser.TOK_FUNCTION) {
@@ -238,9 +247,9 @@ public class HiveTableLineageParserBrief {
 						aliasFieldName = null == ast.getChild(1) ? cleanFieldName
 								: ast.getChild(1).getText().toLowerCase();
 
-						System.out.println("字段別名: " + tableRealAndAliasNameStack.peek() + "." + aliasFieldName + " -> "
+						System.out.println("字段別名: " + tokSubQueryStack.peek() + "." + aliasFieldName + " -> "
 								+ cleanFieldName);
-						fieldAliasMap.put(tableRealAndAliasNameStack.peek() + "." + aliasFieldName,
+						fieldAliasMap.put(tokSubQueryStack.peek() + "." + aliasFieldName,
 								currentTableName + "." + cleanFieldName);
 
 					} else if (ast.getChild(0).getChild(1).getType() == HiveParser.DOT) {
@@ -271,7 +280,7 @@ public class HiveTableLineageParserBrief {
 						String tgtAliasFieldName = ast.getChild(1) == null ? tgtFieldName
 								: ast.getChild(1).getText().toLowerCase();
 
-						System.out.println("字段别名: " + tgtAliasFieldName + " -> " + tgtTableName + "." + tgtFieldName);
+//						System.out.println("字段别名: " + tgtAliasFieldName + " -> " + tgtTableName + "." + tgtFieldName);
 						tgtFieldMap.put(tgtAliasFieldName, tgtTableName + "." + tgtFieldName);
 
 					}
@@ -283,10 +292,10 @@ public class HiveTableLineageParserBrief {
 					aliasFieldName = ast.getChild(1).getText().toLowerCase();
 					String tempTableName = ast.getChild(0).getChild(1).getChild(0).getChild(0).getText().toLowerCase();
 
-					fieldAliasMap.put(tableRealAndAliasNameStack.peek() + "." + aliasFieldName,
+					fieldAliasMap.put(tokSubQueryStack.peek() + "." + aliasFieldName,
 							currentTableName + "." + cleanFieldName);
 					System.out.println(
-							"字段別名: " + tableRealAndAliasNameStack.peek() + "." + aliasFieldName + " -> " + fieldName);
+							"字段別名: " + tokSubQueryStack.peek() + "." + aliasFieldName + " -> " + fieldName);
 
 				}
 
@@ -342,7 +351,7 @@ public class HiveTableLineageParserBrief {
 						// (tok_selexpr 'aaaaa' s_a)
 						String fieldCleanName = astNode.getChild(1).getChild(1).getText().toLowerCase();
 						String filedAliasName = fieldCleanName;
-						insertFieldMap.put(filedAliasName, fieldCleanName);
+						insertFieldMap.put(tokSubQueryStack.peek() + "." + filedAliasName, fieldCleanName);
 					} else if (astNode.getChild(i).getChild(0).getType() == HiveParser.DOT) {
 						// (. (tok_table_or_col c) row_key))
 						String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getText().toLowerCase();
@@ -352,7 +361,8 @@ public class HiveTableLineageParserBrief {
 						if (null != astNode.getChild(i).getChild(1)) {
 							filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
 						}
-						insertFieldMap.put(filedAliasName, fieldFromTableName + "." + fieldCleanName);
+						insertFieldMap.put(tokSubQueryStack.peek() + "." + filedAliasName,
+								fieldFromTableName + "." + fieldCleanName);
 					} else if (astNode.getChild(i).getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL) {
 						// (tok_selexpr (tok_table_or_col vv) a_vv)
 						String fieldCleanName = astNode.getChild(i).getChild(0).getChild(0).getText().toLowerCase();
@@ -360,7 +370,7 @@ public class HiveTableLineageParserBrief {
 						if (null != astNode.getChild(i).getChild(1)) {
 							filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
 						}
-						insertFieldMap.put(filedAliasName, fieldCleanName);						
+						insertFieldMap.put(tokSubQueryStack.peek() + "." + filedAliasName, fieldCleanName);
 					} else if (astNode.getChild(i).getChild(0).getType() == HiveParser.TOK_FUNCTION) {
 						// (tok_function when (tok_function in (tok_table_or_col source) '1' '3') 1 0)
 						// is_kd_source)
@@ -371,13 +381,16 @@ public class HiveTableLineageParserBrief {
 								String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(1)
 										.getChild(0).getText().toLowerCase();
 								String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
-								insertFieldMap.put(filedAliasName, fieldCleanName);
+								insertFieldMap.put(tokSubQueryStack.peek() + "." + filedAliasName,
+										fieldCleanName);
 							} else if (astNode.getChild(i).getChild(0).getChild(1).getType() == HiveParser.EQUAL) {
-								// (tok_selexpr (tok_function when (= (tok_table_or_col source) 'hello') 1 0) s_kd_source)
+								// (tok_selexpr (tok_function when (= (tok_table_or_col source) 'hello') 1 0)
+								// s_kd_source)
 								String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(0)
 										.getChild(0).getText().toLowerCase();
 								String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
-								insertFieldMap.put(filedAliasName, fieldCleanName);
+								insertFieldMap.put(tokSubQueryStack.peek() + "." + filedAliasName,
+										fieldCleanName);
 							}
 						}
 					}
@@ -431,6 +444,35 @@ public class HiveTableLineageParserBrief {
 		return set;
 	}
 
+	public Set<String> parseIteral(ASTNode ast) {// 属于深度解析
+		// System.out.println(oper);
+		Set<String> set = new HashSet<String>();// 当前查询所对应到的表集合
+		prepareToParseCurrentNodeAndChilds(ast);
+		set.addAll(parseChildNodes(ast));
+		set.addAll(parseCurrentNode(ast, set));
+		endParseCurrentNode(ast);
+		return set;
+	}
+
+	private void endParseCurrentNode(ASTNode ast) {
+		if (ast.getToken() != null) {
+			switch (ast.getToken().getType()) {// join 从句结束，跳出join
+			case HiveParser.TOK_RIGHTOUTERJOIN:
+			case HiveParser.TOK_LEFTOUTERJOIN:
+			case HiveParser.TOK_JOIN:
+				joinClause = false;
+				break;
+			case HiveParser.TOK_QUERY:
+				break;
+			case HiveParser.TOK_INSERT:
+			case HiveParser.TOK_SELECT:
+				nowQueryTable = tableNameStack.pop();
+				oper = operStack.pop();
+				break;
+			}
+		}
+	}
+
 	private Set<String> parseChildNodes(ASTNode ast) {
 		Set<String> set = new HashSet<String>();
 		int numCh = ast.getChildCount();
@@ -455,6 +497,7 @@ public class HiveTableLineageParserBrief {
 			case HiveParser.TOK_LEFTOUTERJOIN:
 			case HiveParser.TOK_JOIN:
 				joinClause = true;
+
 				break;
 			case HiveParser.TOK_QUERY:
 				tableNameStack.push(nowQueryTable);
@@ -616,7 +659,7 @@ public class HiveTableLineageParserBrief {
 				+ "WHERE SUBSTR(tdbank_imp_date, 1, 8) = 20180115\r\n"
 				+ "  AND op_type IN ( '0X8007408' ,'0X8007409' )";
 
-		String sql54 = "INSERT INTO TABLE t_kandian_account_video_uv_daily_new SELECT 20190226,'aaaaa' as s_a, C.puin puin ,C.row_key ,CASE WHEN source IN( '1' ,'3') THEN 1 ELSE 0 END AS is_kd_source ,CASE WHEN source='hello' THEN 1 ELSE 0 END AS s_kd_source ,uv,vv a_vv,c.uu c_uv FROM ( SELECT puin ,A.row_key ,COUNT(DISTINCT A.cuin) AS uv ,SUM(A.vv) AS vv FROM ( SELECT cuin ,business_id AS puin ,op_cnt AS vv ,rowkey AS row_key ,RANK() OVER ( PARTITION BY rowkey ORDER BY ftime ) AS f_rank FROM sng_cp_fact.v_ty_audit_all_video_play_basic_info_check_clean WHERE fdate = 20190226 AND score < 80 AND dis_platform = 1 AND op_type = 3 AND op_cnt > 0 AND LENGTH(rowkey) = 16 AND SUBSTR(rowkey, 15, 2) IN ( 'ab' ,'ae' ,'af' ,'aj' ,'al' ,'ao' ) AND play_time>0 AND play_time/1000 BETWEEN 0 AND 3600 AND video_length>0 AND video_length/1000 BETWEEN 1 AND 7200 AND ((play_time / video_length > 0.6 AND video_length < 21000) OR (play_time > 10000 AND video_length > 20000)) AND business_id > 100 ) A LEFT JOIN ( SELECT MAX(fdate) AS tdbank_imp_date ,rowkey AS row_key ,SUM(op_cnt) AS history_vv FROM sng_cp_fact.v_ty_audit_all_video_play_basic_info_check_clean WHERE fdate BETWEEN DATE_SUB(20190226, 90) AND DATE_SUB(20190226, 1) AND score < 80 AND dis_platform = 1 AND op_type = 3 AND op_cnt > 0 AND LENGTH(rowkey) = 16 AND SUBSTR(rowkey, 15, 2) IN ( 'ab' ,'ae' ,'af' ,'aj' ,'al' ,'ao' ) AND play_time>0 AND play_time/1000 BETWEEN 0 AND 3600 AND video_length>0 AND video_length/1000 BETWEEN 1 AND 7200 AND ((play_time / video_length > 0.6 AND video_length < 21000) OR (play_time > 10000 AND video_length > 20000)) AND business_id > 100 GROUP BY rowkey ) B ON A.row_key = B.row_key WHERE ( ( B.history_vv IS NOT NULL AND f_rank < (3000001 - B.history_vv) ) OR ( f_rank < 3000001 AND B.history_vv IS NULL ) ) GROUP BY A.puin ,A.row_key ) C LEFT JOIN ( SELECT puin ,row_key ,CASE WHEN GET_JSON_OBJECT(MAX(extra_info), '$.store_type') IS NOT null THEN GET_JSON_OBJECT(MAX(extra_info), '$.store_type') ELSE GET_JSON_OBJECT(MAX(extra_info), '$.src') END AS source FROM sng_tdbank . cc_dsl_content_center_rpt_fdt0 WHERE tdbank_imp_date BETWEEN DATE_SUB(20190226, 90) AND 20190226 AND op_type = '0XCC0V000' AND GET_JSON_OBJECT(extra_info, '$.renewal') NOT IN ('1') AND src IN ( '2' ,'5' ,'6' ,'10' ,'12' ,'15' ) GROUP BY puin ,row_key ) D ON C.row_key = D.row_key";
+		String sql54 = "INSERT INTO TABLE t_kandian_account_video_uv_daily_new SELECT 20190226,'aaaaa' as s_a, C.puin puin ,C.row_key ,CASE WHEN source IN( '1' ,'3') THEN 1 ELSE 0 END AS is_kd_source ,CASE WHEN source='hello' THEN 1 ELSE 0 END AS s_kd_source ,uv,vv a_vv,c.uv c_uv FROM ( SELECT puin ,A.row_key ,COUNT(DISTINCT A.cuin) AS uv ,SUM(A.vv) AS vv FROM ( SELECT cuin ,business_id AS puin ,op_cnt AS vv ,rowkey AS row_key ,RANK() OVER ( PARTITION BY rowkey ORDER BY ftime ) AS f_rank FROM sng_cp_fact.v_ty_audit_all_video_play_basic_info_check_clean WHERE fdate = 20190226 AND score < 80 AND dis_platform = 1 AND op_type = 3 AND op_cnt > 0 AND LENGTH(rowkey) = 16 AND SUBSTR(rowkey, 15, 2) IN ( 'ab' ,'ae' ,'af' ,'aj' ,'al' ,'ao' ) AND play_time>0 AND play_time/1000 BETWEEN 0 AND 3600 AND video_length>0 AND video_length/1000 BETWEEN 1 AND 7200 AND ((play_time / video_length > 0.6 AND video_length < 21000) OR (play_time > 10000 AND video_length > 20000)) AND business_id > 100 ) A LEFT JOIN ( SELECT MAX(fdate) AS tdbank_imp_date ,rowkey AS row_key ,SUM(op_cnt) AS history_vv FROM sng_cp_fact.v_ty_audit_all_video_play_basic_info_check_clean WHERE fdate BETWEEN DATE_SUB(20190226, 90) AND DATE_SUB(20190226, 1) AND score < 80 AND dis_platform = 1 AND op_type = 3 AND op_cnt > 0 AND LENGTH(rowkey) = 16 AND SUBSTR(rowkey, 15, 2) IN ( 'ab' ,'ae' ,'af' ,'aj' ,'al' ,'ao' ) AND play_time>0 AND play_time/1000 BETWEEN 0 AND 3600 AND video_length>0 AND video_length/1000 BETWEEN 1 AND 7200 AND ((play_time / video_length > 0.6 AND video_length < 21000) OR (play_time > 10000 AND video_length > 20000)) AND business_id > 100 GROUP BY rowkey ) B ON A.row_key = B.row_key WHERE ( ( B.history_vv IS NOT NULL AND f_rank < (3000001 - B.history_vv) ) OR ( f_rank < 3000001 AND B.history_vv IS NULL ) ) GROUP BY A.puin ,A.row_key ) C LEFT JOIN ( SELECT puin ,row_key ,CASE WHEN GET_JSON_OBJECT(MAX(extra_info), '$.store_type') IS NOT null THEN GET_JSON_OBJECT(MAX(extra_info), '$.store_type') ELSE GET_JSON_OBJECT(MAX(extra_info), '$.src') END AS source FROM sng_tdbank . cc_dsl_content_center_rpt_fdt0 WHERE tdbank_imp_date BETWEEN DATE_SUB(20190226, 90) AND 20190226 AND op_type = '0XCC0V000' AND GET_JSON_OBJECT(extra_info, '$.renewal') NOT IN ('1') AND src IN ( '2' ,'5' ,'6' ,'10' ,'12' ,'15' ) GROUP BY puin ,row_key ) D ON C.row_key = D.row_key";
 		String sql54_a = "INSERT INTO TABLE t_kandian_account_video_uv_daily_new SELECT 20190226 ,C.puin ,C.row_key ,CASE WHEN source IN( '1' ,'3') THEN 1 ELSE 0 END AS is_kd_source ,uv ,vv FROM ( SELECT puin ,A.row_key ,COUNT(DISTINCT A.cuin) AS uv ,SUM(A.vv) AS vv FROM ( SELECT cuin ,business_id AS puin ,op_cnt AS vv ,rowkey AS row_key ,RANK() OVER ( PARTITION BY rowkey ORDER BY ftime ) AS f_rank FROM v_ty_audit_all_video_play_basic_info_check_clean WHERE fdate = 20190226 AND score < 80 AND dis_platform = 1 AND op_type = 3 AND op_cnt > 0 AND LENGTH(rowkey) = 16 AND SUBSTR(rowkey, 15, 2) IN ( 'ab' ,'ae' ,'af' ,'aj' ,'al' ,'ao' ) AND play_time>0 AND play_time/1000 BETWEEN 0 AND 3600 AND video_length>0 AND video_length/1000 BETWEEN 1 AND 7200 AND ((play_time / video_length > 0.6 AND video_length < 21000) OR (play_time > 10000 AND video_length > 20000)) AND business_id > 100 ) A LEFT JOIN ( SELECT MAX(fdate) AS tdbank_imp_date ,rowkey AS row_key ,SUM(op_cnt) AS history_vv FROM v_ty_audit_all_video_play_basic_info_check_clean WHERE fdate BETWEEN DATE_SUB(20190226, 90) AND DATE_SUB(20190226, 1) AND score < 80 AND dis_platform = 1 AND op_type = 3 AND op_cnt > 0 AND LENGTH(rowkey) = 16 AND SUBSTR(rowkey, 15, 2) IN ( 'ab' ,'ae' ,'af' ,'aj' ,'al' ,'ao' ) AND play_time>0 AND play_time/1000 BETWEEN 0 AND 3600 AND video_length>0 AND video_length/1000 BETWEEN 1 AND 7200 AND ((play_time / video_length > 0.6 AND video_length < 21000) OR (play_time > 10000 AND video_length > 20000)) AND business_id > 100 GROUP BY rowkey ) B ON A.row_key = B.row_key WHERE ( ( B.history_vv IS NOT NULL AND f_rank < (3000001 - B.history_vv) ) OR ( f_rank < 3000001 AND B.history_vv IS NULL ) ) GROUP BY A.puin ,A.row_key ) C LEFT JOIN ( SELECT puin ,row_key ,CASE WHEN GET_JSON_OBJECT(MAX(extra_info), '$.store_type') IS NOT null THEN GET_JSON_OBJECT(MAX(extra_info), '$.store_type') ELSE GET_JSON_OBJECT(MAX(extra_info), '$.src') END AS source FROM cc_dsl_content_center_rpt_fdt0 WHERE tdbank_imp_date BETWEEN DATE_SUB(20190226, 90) AND 20190226 AND op_type = '0XCC0V000' AND GET_JSON_OBJECT(extra_info, '$.renewal') NOT IN ('1') AND src IN ( '2' ,'5' ,'6' ,'10' ,'12' ,'15' ) GROUP BY puin ,row_key ) D ON C.row_key = D.row_key";
 
 		// String parsesql = sql52_a;
@@ -664,5 +707,14 @@ public class HiveTableLineageParserBrief {
 
 		JamesUtil.printDivider();
 		JamesUtil.printStringMap(insertFieldMap);
+
+		JamesUtil.printDivider();
+		JamesUtil.printList(tokList);
+		
+		JamesUtil.printDivider();
+		JamesUtil.printStack(tokSubQueryStack);
+		
+		JamesUtil.printDivider();
+		JamesUtil.printStack(tokFromStack);
 	}
 }

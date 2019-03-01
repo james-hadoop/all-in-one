@@ -56,8 +56,7 @@ public class JamesUtil {
 		}
 
 		for (int i = 0; i < list.size(); i++) {
-			System.out.print(list.get(i));
-			System.out.print("\t");
+			System.out.println(list.get(i));
 		}
 		System.out.println();
 	}
@@ -89,7 +88,7 @@ public class JamesUtil {
 
 		Set<String> setKey = map.keySet();
 		for (String key : setKey) {
-			System.out.println(key + " --> " + map.get(key));
+			System.out.println(key + " -> " + map.get(key));
 		}
 		System.out.println();
 	}
