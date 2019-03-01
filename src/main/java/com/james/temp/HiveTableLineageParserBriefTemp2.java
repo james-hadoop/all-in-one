@@ -17,7 +17,7 @@ import org.apache.hadoop.hive.ql.parse.ParseDriver;
 
 import com.james.common.util.JamesUtil;
 
-public class HiveTableLineageParserBriefTemp {
+public class HiveTableLineageParserBriefTemp2 {
 	/*
 	 * TableRelation
 	 */
@@ -41,8 +41,8 @@ public class HiveTableLineageParserBriefTemp {
 	/*
 	 * tables存入的是每个表名以及表名对应的操作 String = tableName + "\t" + OPER
 	 */
-	private Set<String> tables = new HashSet<String>();
-	private Stack<String> tableAliasNameStack = new Stack<String>();
+//	private Set<String> tables = new HashSet<String>();
+//	private Stack<String> tableAliasNameStack = new Stack<String>();
 	private Stack<Oper> operStack = new Stack<Oper>();
 	private Oper oper;
 
@@ -83,11 +83,6 @@ public class HiveTableLineageParserBriefTemp {
 
 					tableAliasMap.put(tableAlias.toLowerCase(), aliaReal);
 
-					if (tableAliasNameStack.size() > 0) {
-						tableAliasNameStack.pop();
-					}
-					tableAliasNameStack.push(tableAlias.toLowerCase());
-
 					if (tokDbNameStack.size() > 0) {
 						String tokDBAliasName = tokDbNameStack.peek();
 						String tokTableAliasName = tokTableNameStack.peek();
@@ -116,23 +111,6 @@ public class HiveTableLineageParserBriefTemp {
 					} // if (tokDbNameStack.size()>0)
 				}
 				break;
-
-			case HiveParser.TOK_TAB:// outputTable
-				String tableTab = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));
-
-				tables.add(tableTab + "\t" + Oper.SELECT);
-				tgtTable.setTableName(tableTab);
-				break;
-			case HiveParser.TOK_DELETE_FROM:// outputTable
-				String deletetab = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));
-
-				tables.add(deletetab + "\t" + Oper.DELETE);
-				break;
-			case HiveParser.TOK_UPDATE_TABLE:// outputTable
-				String updatetab = BaseSemanticAnalyzer.getUnescapedName((ASTNode) ast.getChild(0));
-
-				tables.add(updatetab + "\t" + Oper.UPDATE);
-				break;
 			case HiveParser.TOK_TABREF:// inputTable
 				ASTNode tabTree = (ASTNode) ast.getChild(0);
 				String tableName = (tabTree.getChildCount() == 1)
@@ -142,7 +120,6 @@ public class HiveTableLineageParserBriefTemp {
 				if (oper == Oper.SELECT) {
 					set.add(tableName);
 				}
-				tables.add(tableName + "\t" + oper);
 				srcTables.add(new TableNode(tableName));
 				if (ast.getChild(1) != null) {
 					String alia = ast.getChild(1).getText().toLowerCase();
@@ -267,26 +244,6 @@ public class HiveTableLineageParserBriefTemp {
 					}
 				}
 				break;
-			case HiveParser.TOK_ALTERTABLE:
-				ASTNode alterNode = (ASTNode) ast.getChild(0);
-				if (alterNode.getToken().getType() == HiveParser.TOK_TABNAME) {
-					String alterTableName = BaseSemanticAnalyzer.getUnescapedName(alterNode);
-					tables.add(alterTableName + "\t" + oper);
-				}
-				break;
-			case HiveParser.TOK_CREATETABLE:
-				oper = Oper.CREATE＿TABLE;
-				ASTNode createNode = (ASTNode) ast.getChild(0);
-				String createTableName = BaseSemanticAnalyzer.getUnescapedName((ASTNode) createNode);
-				tables.add(createTableName + "\t" + oper);
-				break;
-			case HiveParser.TOK_DROPTABLE:
-				oper = Oper.DROP_TABLE;
-				ASTNode dropNode = (ASTNode) ast.getChild(0);
-				String dropTableName = BaseSemanticAnalyzer.getUnescapedName((ASTNode) dropNode);
-				tables.add(dropTableName + "\t" + oper);
-				break;
-			}
 		}
 
 		if (ast.getToken() != null && ast.getToken().getType() >= HiveParser.TOK_SHOWCOLUMNS
@@ -295,7 +252,6 @@ public class HiveTableLineageParserBriefTemp {
 		{
 			ASTNode dropNode = (ASTNode) ast.getChild(0);
 			String dropTableName = BaseSemanticAnalyzer.getUnescapedName((ASTNode) dropNode);
-			tables.add(dropTableName + "\t" + oper);
 		}
 		if (ast.getToken() != null && ast.getToken().getType() >= HiveParser.TOK_DESCDATABASE
 				&& ast.getToken().getType() <= HiveParser.TOK_DESCTABLE) {
@@ -307,18 +263,17 @@ public class HiveTableLineageParserBriefTemp {
 				}
 			}
 			String descTableName = BaseSemanticAnalyzer.getUnescapedName((ASTNode) descNode);
-			tables.add(descTableName + "\t" + oper);
 		}
-
+		}
 		return set;
 	}
 
 	public Set<String> parseIteral(ASTNode ast) {
 		Set<String> set = new HashSet<String>();
-		prepareToParseCurrentNodeAndChilds(ast);
+//		prepareToParseCurrentNodeAndChilds(ast);
 		set.addAll(parseChildNodes(ast));
 		set.addAll(parseCurrentNode(ast, set));
-		endParseCurrentNode(ast);
+//		endParseCurrentNode(ast);
 		return set;
 	}
 
@@ -419,9 +374,9 @@ public class HiveTableLineageParserBriefTemp {
 		System.out.println("***************字段别名***************");
 		output(fieldAliasMap);
 		System.out.println("***************表***************");
-		for (String table : tables) {
-			System.out.println(table);
-		}
+//		for (String table : tables) {
+//			System.out.println(table);
+//		}
 	}
 
 	public static void main(String[] args) {
@@ -439,7 +394,7 @@ public class HiveTableLineageParserBriefTemp {
 		String sql61 = "INSERT INTO TABLE t_kandian_account_video_uv_daily_new SELECT 20190226, 'aaaaa' AS s_a, C.puin puin , C.row_key , CASE WHEN SOURCE IN('1' ,'3') THEN 1 ELSE 0 END AS is_kd_source , CASE WHEN SOURCE='hello' THEN 1 ELSE 0 END AS s_kd_source , uv, vv a_vv, c.uv c_uv, d.puin d_puin FROM(SELECT puin , A.row_key , COUNT(DISTINCT A.cuin) AS uv , SUM(A.vv) AS vv FROM (SELECT cuin , business_id AS puin , op_cnt AS vv , rowkey AS row_key , RANK() OVER (PARTITION BY rowkey ORDER BY ftime) AS f_rank FROM sng_cp_fact.v_ty_audit_all_video_play_basic_info_check_clean WHERE fdate = 20190226 AND score < 80 AND dis_platform = 1 AND op_type = 3 AND op_cnt > 0 AND LENGTH(rowkey) = 16 AND SUBSTR(rowkey, 15, 2) IN ('ab' , 'ae' , 'af' , 'aj' , 'al' , 'ao') AND play_time>0 AND play_time/1000 BETWEEN 0 AND 3600 AND video_length>0 AND video_length/1000 BETWEEN 1 AND 7200 AND ((play_time / video_length > 0.6 AND video_length < 21000) OR (play_time > 10000 AND video_length > 20000)) AND business_id > 100) A LEFT JOIN (SELECT MAX(fdate) AS tdbank_imp_date , rowkey AS row_key , SUM(op_cnt) AS history_vv FROM sng_cp_fact.v_ty_BBBB WHERE fdate BETWEEN DATE_SUB(20190226, 90) AND DATE_SUB(20190226, 1) AND score < 80 AND dis_platform = 1 AND op_type = 3 AND op_cnt > 0 AND LENGTH(rowkey) = 16 AND SUBSTR(rowkey, 15, 2) IN ('ab' , 'ae' , 'af' , 'aj' , 'al' , 'ao') AND play_time>0 AND play_time/1000 BETWEEN 0 AND 3600 AND video_length>0 AND video_length/1000 BETWEEN 1 AND 7200 AND ((play_time / video_length > 0.6 AND video_length < 21000) OR (play_time > 10000 AND video_length > 20000)) AND business_id > 100 GROUP BY rowkey) B ON A.row_key = B.row_key WHERE ((B.history_vv IS NOT NULL AND f_rank < (3000001 - B.history_vv)) OR (f_rank < 3000001 AND B.history_vv IS NULL)) GROUP BY A.puin , A.row_key) C LEFT JOIN (SELECT puin , row_key , CASE WHEN GET_JSON_OBJECT(MAX(extra_info), '$.store_type') IS NOT NULL THEN GET_JSON_OBJECT(MAX(extra_info), '$.store_type') ELSE GET_JSON_OBJECT(MAX(extra_info), '$.src') END AS SOURCE FROM sng_tdbank . cc_dsl_content_center_rpt_fdt0 WHERE tdbank_imp_date BETWEEN DATE_SUB(20190226, 90) AND 20190226 AND op_type = '0XCC0V000' AND GET_JSON_OBJECT(extra_info, '$.renewal') NOT IN ('1') AND src IN ('2' , '5' , '6' , '10' , '12' , '15') GROUP BY puin , row_key) D ON C.row_key = D.row_key";
 		String parsesql = sql61;
 
-		HiveTableLineageParserBriefTemp hp = new HiveTableLineageParserBriefTemp();
+		HiveTableLineageParserBriefTemp2 hp = new HiveTableLineageParserBriefTemp2();
 		System.out.println(parsesql);
 		ASTNode ast = null;
 		try {
