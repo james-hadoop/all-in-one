@@ -329,12 +329,8 @@ public class HiveTableLineageParserBrief {
 			case HiveParser.TOK_ALTERTABLE_RENAME:
 			case HiveParser.TOK_ALTERTABLE_ADDCOLS:
 			case HiveParser.TOK_INSERT_INTO:
-//				tableRealAndAliasNameStack.pop();
-//				System.out.println("## tableRealAndAliasNameStack.size()=" + tableRealAndAliasNameStack.size());
-
 				ASTNode astNode = (ASTNode) ast.getParent().getChild(1);
 				int nodeCount = ast.getParent().getChild(1).getChildCount();
-//				System.out.println("nodeCount=" + nodeCount);
 
 				for (int i = 0; i < nodeCount; i++) {
 					if (astNode.getChild(i).getChildCount() == 1
@@ -359,7 +355,7 @@ public class HiveTableLineageParserBrief {
 						insertFieldMap.put(filedAliasName, fieldFromTableName + "." + fieldCleanName);
 					} else if (astNode.getChild(i).getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL) {
 						// (tok_selexpr (tok_table_or_col vv) a_vv)
-						String fieldCleanName = astNode.getChild(i).getChild(0).getText().toLowerCase();
+						String fieldCleanName = astNode.getChild(i).getChild(0).getChild(0).getText().toLowerCase();
 						String filedAliasName = fieldCleanName;
 						if (null != astNode.getChild(i).getChild(1)) {
 							filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
