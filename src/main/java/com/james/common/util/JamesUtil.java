@@ -10,146 +10,146 @@ import java.util.Stack;
 import com.james.dataStructure.tree.BinTree.TreeNode;
 
 public class JamesUtil {
-    public static void printDivider() {
-        System.out.println("\n---------------------------------- divider ----------------------------------\n\n");
-    }
+	public static void printDivider() {
+		System.out.println("\n---------------------------------- divider ----------------------------------\n\n");
+	}
 
-    public static void printSet(Set<String> set) {
-        if (null == set || 0 == set.size()) {
-            return;
-        }
+	public static void printSet(Set<String> set) {
+		if (null == set || 0 == set.size()) {
+			return;
+		}
 
-        for (String s : set) {
-            System.out.println(s);
-        }
-    }
+		for (String s : set) {
+			System.out.println(s);
+		}
+	}
 
-    public static void printStack(Stack<String> stack) {
-        if (null == stack || 0 == stack.size()) {
-            return;
-        }
+	public static void printStack(Stack<String> stack) {
+		if (null == stack || 0 == stack.size()) {
+			return;
+		}
 
-        for (String s : stack) {
-            System.out.println(s);
-        }
-    }
+		for (String s : stack) {
+			System.out.println(s);
+		}
+	}
 
-    public static void printArray(int[] arr) {
-        for (int i = 0; i < arr.length; i++) {
-            System.out.print(arr[i]);
-            System.out.print("\t");
-        }
-        System.out.println();
-    }
+	public static void printArray(int[] arr) {
+		for (int i = 0; i < arr.length; i++) {
+			System.out.print(arr[i]);
+			System.out.print("\t");
+		}
+		System.out.println();
+	}
 
-    public static void printArray(String[] arr) {
-        for (int i = 0; i < arr.length; i++) {
-            System.out.print(arr[i]);
-            System.out.print("\t");
-        }
-        System.out.println();
-    }
+	public static void printArray(String[] arr) {
+		for (int i = 0; i < arr.length; i++) {
+			System.out.print(arr[i]);
+			System.out.print("\t");
+		}
+		System.out.println();
+	}
 
-    public static void printList(List<String> list) {
-        if (null == list || 0 == list.size()) {
-            return;
-        }
+	public static void printList(List<String> list) {
+		if (null == list || 0 == list.size()) {
+			return;
+		}
 
-        for (int i = 0; i < list.size(); i++) {
-            System.out.print(list.get(i));
-            System.out.print("\t");
-        }
-        System.out.println();
-    }
+		for (int i = 0; i < list.size(); i++) {
+			System.out.print(list.get(i));
+			System.out.print("\t");
+		}
+		System.out.println();
+	}
 
-    public static void printTreeList(List<TreeNode> list, String mode) {
-        System.out.println(mode + " tree: ");
-        for (TreeNode node : list) {
-            System.out.print(node.data + "\t");
-        }
-        System.out.println("\n");
-    }
+	public static void printTreeList(List<TreeNode> list, String mode) {
+		System.out.println(mode + " tree: ");
+		for (TreeNode node : list) {
+			System.out.print(node.data + "\t");
+		}
+		System.out.println("\n");
+	}
 
-    public static void printMap(Map<String, Object> map) {
-        if (null == map || 0 == map.size()) {
-            return;
-        }
+	public static void printMap(Map<String, Object> map) {
+		if (null == map || 0 == map.size()) {
+			return;
+		}
 
-        Set<String> setKey = map.keySet();
-        for (String key : setKey) {
-            System.out.println("key: " + key + " --> " + "value: " + map.get(key));
-        }
-        System.out.println();
-    }
-    
-    public static void printStringMap(Map<String, String> map) {
-        if (null == map || 0 == map.size()) {
-            return;
-        }
+		Set<String> setKey = map.keySet();
+		for (String key : setKey) {
+			System.out.println("key: " + key + " --> " + "value: " + map.get(key));
+		}
+		System.out.println();
+	}
 
-        Set<String> setKey = map.keySet();
-        for (String key : setKey) {
-            System.out.println("key: " + key + " --> " + "value: " + map.get(key));
-        }
-        System.out.println();
-    }
+	public static void printStringMap(Map<String, String> map) {
+		if (null == map || 0 == map.size()) {
+			return;
+		}
 
-    public static List<String> string2List(String str, String divider) {
-        if (null == str || 0 == str.length() || null == divider || 0 == divider.length()) {
-            return null;
-        }
+		Set<String> setKey = map.keySet();
+		for (String key : setKey) {
+			System.out.println(key + " --> " + map.get(key));
+		}
+		System.out.println();
+	}
 
-        List<String> list = new ArrayList<String>();
+	public static List<String> string2List(String str, String divider) {
+		if (null == str || 0 == str.length() || null == divider || 0 == divider.length()) {
+			return null;
+		}
 
-        if (!str.contains(divider)) {
-            list.add(str);
-            return list;
-        }
+		List<String> list = new ArrayList<String>();
 
-        String[] strArr = str.split(divider);
-        list = Arrays.asList(strArr);
+		if (!str.contains(divider)) {
+			list.add(str);
+			return list;
+		}
 
-        return list;
-    }
+		String[] strArr = str.split(divider);
+		list = Arrays.asList(strArr);
 
-    public static List<String> removeAs(List<String> list) {
-        if (null == list || 0 == list.size()) {
-            return null;
-        }
+		return list;
+	}
 
-        List<String> listClean = new ArrayList<String>();
+	public static List<String> removeAs(List<String> list) {
+		if (null == list || 0 == list.size()) {
+			return null;
+		}
 
-        for (int i = 0; i < list.size(); i++) {
-            listClean.add(removeAsInString(list.get(i)));
-        }
+		List<String> listClean = new ArrayList<String>();
 
-        return listClean;
-    }
+		for (int i = 0; i < list.size(); i++) {
+			listClean.add(removeAsInString(list.get(i)));
+		}
 
-    public static String removeAsInString(String str) {
-        if (null == str || 0 == str.length()) {
-            return null;
-        }
+		return listClean;
+	}
 
-        String text = str;
-        if (str.contains("AS")) {
-            text = str.substring(0, str.indexOf(" AS "));
-        }
+	public static String removeAsInString(String str) {
+		if (null == str || 0 == str.length()) {
+			return null;
+		}
 
-        if (text.contains(".")) {
-            text = text.substring(text.indexOf(".") + 1, text.length());
-        }
+		String text = str;
+		if (str.contains("AS")) {
+			text = str.substring(0, str.indexOf(" AS "));
+		}
 
-        return text;
-    }
+		if (text.contains(".")) {
+			text = text.substring(text.indexOf(".") + 1, text.length());
+		}
 
-    public static void main(String[] args) {
-        String str = "tt.a_a AS f_a_a";
-        String text = removeAsInString(str);
-        System.out.println(text);
+		return text;
+	}
 
-        String strArr = "tt.a_a AS f_a_a,tt.b_b AS f_b_b";
-        List<String> list = removeAs(string2List(strArr, ","));
-        JamesUtil.printList(list);
-    }
+	public static void main(String[] args) {
+		String str = "tt.a_a AS f_a_a";
+		String text = removeAsInString(str);
+		System.out.println(text);
+
+		String strArr = "tt.a_a AS f_a_a,tt.b_b AS f_b_b";
+		List<String> list = removeAs(string2List(strArr, ","));
+		JamesUtil.printList(list);
+	}
 }
