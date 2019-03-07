@@ -13,11 +13,17 @@
     <attvalues>
      <attvalue for="modularity_class" value="1"/>
     </attvalues>
+    <viz:color r="235" g="81" b="72"/>
+    <viz:position x="-200.0" y="200.0" z="0.0"/>
+    <viz:size value="50.0"/>
    </node>
    <node id="2" label="node2">
     <attvalues>
      <attvalue for="modularity_class" value="2"/>
     </attvalues>
+    <viz:color r="235" g="81" b="72"/>
+    <viz:position x="-300.0" y="300.0" z="0.0"/>
+    <viz:size value="50.0"/>
    </node>
   </nodes>
   <edges count="1">
