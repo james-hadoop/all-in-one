@@ -1,7 +1,6 @@
 package com.james.common.util;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
@@ -54,24 +53,84 @@ public class SqlLineageUtil {
 		return tableAliasLineageMap.get(tableAliasName).getTableAliasReferMap().keySet();
 	}
 
-	public static List<String> addAliasName(String field, Map<String, String> topLevelTableAliasMap) {
+	/*
+	 * vv -> c.vv
+	 */
+	public static Set<String> addAliasName(String field, Map<String, String> topLevelTableAliasMap) {
 		if (null == field) {
 			return null;
 		}
 
-		List<String> list = new ArrayList<String>();
+		Set<String> set = new HashSet<String>();
 
 		if (field.contains(".")) {
-			list.add(field);
+			set.add(field);
 		} else {
-			Set<String> set = topLevelTableAliasMap.keySet();
-			for (String k : set) {
-				list.add(k + "." + field);
+			Set<String> s = topLevelTableAliasMap.keySet();
+			for (String k : s) {
+				set.add(k + "." + field);
 			}
 		}
 
-		return list;
+		return set;
 	}
+
+	/*
+	 * c.puin -> a.puin & b.puin
+	 */
+	public static Set<String> addReferTableName(String field, Map<String, TableLineageInfo> tableAliasLineageMap) {
+		if (null == field || !field.contains(".")) {
+			return null;
+		}
+
+		TableLineageInfo info = tableAliasLineageMap.get(field.substring(0, field.indexOf(".")));
+		if (null == info) {
+			return null;
+		}
+
+		Set<String> set = new HashSet<String>();
+
+		if (info.getTableAliasReferMap().size() > 1) {
+			for (String k : info.getTableAliasReferMap().keySet()) {
+				set.add(k + "." + field.substring(field.indexOf(".") + 1));
+			}
+		} else {
+			set.add(field);
+		}
+
+		return set;
+	}
+
+	/*
+	 * b.history_vv -> op_cnt
+	 * 
+	 * b.history_vv -> b.op_cnt
+	 */
+	public static Set<String> addAliasName2(String field, Map<String, String> fieldAliasMap2) {
+		if (null == field || !field.contains(".")) {
+			return null;
+		}
+
+		String mappingField = fieldAliasMap2.get(field);
+		if (null == mappingField) {
+			return null;
+		}
+
+		Set<String> set = new HashSet<String>();
+		String aliasName = field.substring(0, field.indexOf("."));
+
+		if (mappingField.contains(".")) {
+			set.add(mappingField);
+		} else {
+			set.add(aliasName + "." + mappingField);
+		}
+
+		return set;
+	}
+
+	// TODO
+
+//	public static Map<String,String> find 
 
 //	public static Set<String> getTopLevelTableAlias(Map<String, TableLineageInfo> tableAliasLineageMap){
 //		if(null==tableAliasLineageMap||0==tableAliasLineageMap.size()) {

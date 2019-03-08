@@ -1,0 +1,46 @@
+// insertSelectFieldMap
+a_vv -> vv
+c_uv -> c.uv
+d_puin -> d.puin
+is_kd_source -> source
+puin -> c.puin
+row_key -> c.row_key
+s_a -> s_a
+s_kd_source -> source
+uv -> uv
+
+// transformed
+c.vv
+d.vv
+c.uv
+d.puin
+c.source
+d.source
+c.puin
+c.row_key
+c.s_a
+d.s_a
+c.source
+d.source
+c.uv
+d.uv
+
+
+// fieldAliasMap2
+a.cuin -> cuin
+a.f_rank -> 
+a.puin -> business_id
+a.rettt -> rowkey
+a.row_key -> rowkey
+a.vv -> op_cnt
+b.history_vv -> op_cnt
+b.row_key -> rowkey
+b.tdbank_imp_date -> fdate
+c.puin -> puin
+c.row_key -> row_key
+c.uv -> cuin
+c.vv -> vv
+d.puin -> puin
+d.row_key -> row_key
+d.source -> get_json_object
+

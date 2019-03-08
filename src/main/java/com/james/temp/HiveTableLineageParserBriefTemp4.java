@@ -105,7 +105,7 @@ public class HiveTableLineageParserBriefTemp4 {
 								aliasMap.put(tableReferAliasMap.get(referTableName), referTableName);
 
 								tempCurrentTableName += "," + tableAlias;
-							} while (tokDbNameStack.size() > 0&&tokDbNameStack.peek().equals("tok_query"));
+							} while (tokDbNameStack.size() > 0 && !tokDbNameStack.peek().equals("tok_query"));
 
 							tableAliasSetMap.put(tableAlias, tableAliasSet);
 
@@ -443,5 +443,34 @@ public class HiveTableLineageParserBriefTemp4 {
 
 		JamesUtil.printDivider("topLevelTableAliasMap");
 		JamesUtil.printStringMap(topLevelTableAliasMap);
+
+		// TODO
+		JamesUtil.printDivider("output");
+		for (Entry<String, String> e : insertSelectFieldMap.entrySet()) {
+			System.out.println("key=" + e.getKey());
+
+			Set<String> s1 = SqlLineageUtil.addAliasName(e.getValue(), topLevelTableAliasMap);
+			if (null != s1) {
+				for (String i1 : s1) {
+					System.out.println("\t" + i1);
+					System.out.println("-------- i1 --------");
+					Set<String> s2 = SqlLineageUtil.addAliasName2(i1, fieldAliasMap2);
+					if (null != s2) {
+						for (String i2 : s2) {
+							System.out.println("\t" + i2);
+							System.out.println("-------- i2 --------");
+							Set<String> s3=SqlLineageUtil.addReferTableName(i2, tableAliasLineageMap);
+							if(null!=s3) {
+								for(String i3:s3) {
+									System.out.println("\t" + i3);
+									System.out.println("-------- i3 --------");
+								}
+							}
+						}
+					}
+				}
+			}
+			System.out.println();
+		}
 	}
 }
