@@ -14,6 +14,15 @@ public class JamesUtil {
 		System.out.println("\n---------------------------------- divider ----------------------------------\n\n");
 	}
 
+	public static void printDivider(String tok) {
+		if (null == tok) {
+			printDivider();
+		}
+
+		System.out.println(
+				"\n---------------------------------- " + tok + " ----------------------------------\n\n");
+	}
+
 	public static void printSet(Set<String> set) {
 		if (null == set || 0 == set.size()) {
 			return;

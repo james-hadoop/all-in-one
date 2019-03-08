@@ -186,7 +186,9 @@ public class HiveTableLineageParserTable {
                     // alias.put(tableAlias, "");// just store alias
                     System.out.println("tableAlias: "+tableAlias);
                     System.out.println("\tcurrentTableName: "+currentTableName);
+                    if(tableAliasNameStack.size()>0) {
                     tableAliasNameStack.pop();
+                    }
                     tableAliasNameStack.push(tableAlias);
                 }
                 break;
