@@ -39,18 +39,20 @@ public class HiveTableLineageParserBriefTemp4 {
 	private static Stack<String> tokTableNameStack = new Stack<String>();
 	private static Stack<String> tokDbNameStack = new Stack<String>();
 	private static Map<String, Set<String>> tableAliasSetMap = new HashMap<String, Set<String>>();
-	
+
 	/*
 	 * TableAliasEntity
 	 */
-	private static Map<String,TableLineageInfo> tableAliasLineageMap=new HashMap<String,TableLineageInfo>();
-	private static Map<String,String> tableReferAliasMap=new HashMap<String,String>();
-	
-	private static String currentTable="";
+	private static Map<String, TableLineageInfo> tableAliasLineageMap = new HashMap<String, TableLineageInfo>();
+	private static Map<String, String> tableReferAliasMap = new HashMap<String, String>();
+
+	private static String currentTable = "";
 	private static Map<String, String> fieldAliasMap2 = new TreeMap<String, String>();
-	
-	private static List<String> aliasFieldList=new ArrayList<String>();
-	private static List<String> cleanFieldList=new ArrayList<String>();
+
+	private static List<String> aliasFieldList = new ArrayList<String>();
+	private static List<String> cleanFieldList = new ArrayList<String>();
+
+	private static Map<String, String> topLevelTableAliasMap = new HashMap<String, String>();
 
 	// parseCurrentNode
 	private void parseCurrentNode(ASTNode ast) {
@@ -67,17 +69,17 @@ public class HiveTableLineageParserBriefTemp4 {
 					tokDbName = ast.getChild(0).getChild(0).getChild(0).getText().toLowerCase();
 					tokTableName = ast.getChild(0).getChild(0).getChild(1).getText().toLowerCase();
 				}
-				
+
 //				currentTable=tokTableName;
 
 				tokDbNameStack.push(tokDbName.toLowerCase());
-				tokTableNameStack.push(tokDbName.toLowerCase()+"."+tokTableName.toLowerCase());
+				tokTableNameStack.push(tokDbName.toLowerCase() + "." + tokTableName.toLowerCase());
 				break;
 
 			case HiveParser.TOK_SUBQUERY:
 				if (ast.getChildCount() == 2) {
 					String tableAlias = unescapeIdentifier(ast.getChild(1).getText()).toLowerCase();
-					currentTable=tableAlias;
+					currentTable = tableAlias;
 
 					tableAliasMap.put(tableAlias.toLowerCase(), tableAlias);
 
@@ -88,28 +90,40 @@ public class HiveTableLineageParserBriefTemp4 {
 						if (tokDBAliasName.equals("tok_query")) {
 							tokDbNameStack.pop();
 							tokTableNameStack.pop();
-							
-							Map<String,String> aliasMap=new HashMap<String,String>();
 
-							String tempCurrentTableName="";
-							
+							Map<String, String> aliasMap = new HashMap<String, String>();
+
+							String tempCurrentTableName = "";
+
 							Set<String> tableAliasSet = new HashSet<String>();
 							do {
-								String referDbName=tokDbNameStack.pop();
-								String referTableName=tokTableNameStack.pop();
-								
+								String referDbName = tokDbNameStack.pop();
+								String referTableName = tokTableNameStack.pop();
+
 								tableAliasSet.add(referTableName);
-								
+
 								aliasMap.put(tableReferAliasMap.get(referTableName), referTableName);
-								
-								tempCurrentTableName+=","+tableAlias;
-							} while (tokDbNameStack.size() > 0);
+
+								tempCurrentTableName += "," + tableAlias;
+							} while (tokDbNameStack.size() > 0&&tokDbNameStack.peek().equals("tok_query"));
 
 							tableAliasSetMap.put(tableAlias, tableAliasSet);
-							
-							//TODO TableAliasEntity
-							TableLineageInfo tableAliasEntity =new TableLineageInfo(tableAlias,aliasMap);
+
+							// TODO TableAliasEntity
+							TableLineageInfo tableAliasEntity = new TableLineageInfo(tableAlias, aliasMap);
 							tableAliasLineageMap.put(tableAlias, tableAliasEntity);
+
+							Set<String> keyToRemoveSet = new HashSet<String>();
+							for (String k : topLevelTableAliasMap.keySet()) {
+								if (!topLevelTableAliasMap.get(k).equals("tok_query")) {
+									keyToRemoveSet.add(k);
+								}
+							}
+							for (String k : keyToRemoveSet) {
+								topLevelTableAliasMap.remove(k);
+							}
+
+							topLevelTableAliasMap.put(tableAlias, tokDBAliasName);
 						} else {
 							String strToAdd = tokTableAliasName;
 
@@ -117,37 +131,41 @@ public class HiveTableLineageParserBriefTemp4 {
 								Set<String> tableAliasSet = new HashSet<String>();
 								tableAliasSet.add(strToAdd);
 								tableAliasSetMap.put(tableAlias, tableAliasSet);
-								
-								//TODO TableAliasEntity
-								Map<String,String> aliasMap=new HashMap<String,String>();
-								aliasMap.put(tableAlias,strToAdd);
-								TableLineageInfo tableAliasEntity =new TableLineageInfo(tableAlias,aliasMap);
+
+								// TODO TableAliasEntity
+								Map<String, String> aliasMap = new HashMap<String, String>();
+								aliasMap.put(tableAlias, strToAdd);
+								TableLineageInfo tableAliasEntity = new TableLineageInfo(tableAlias, aliasMap);
 								tableAliasLineageMap.put(tableAlias, tableAliasEntity);
 								tableReferAliasMap.put(strToAdd, tableAlias);
 							} else {
 								tableAliasSetMap.get(tableAlias).add(strToAdd);
-								
-								//TODO TableAliasEntity
-								tableAliasLineageMap.get(tableAlias).getTableAliasReferMap().put(tableAlias,strToAdd);
+
+								// TODO TableAliasEntity
+								tableAliasLineageMap.get(tableAlias).getTableAliasReferMap().put(tableAlias, strToAdd);
 								tableReferAliasMap.put(strToAdd, tableAlias);
 							}
+
+							topLevelTableAliasMap.put(tableAlias, tokDBAliasName);
 						}
-					} else{
+					} else {
 						// if (tokDbNameStack.size()<=0)
 						System.out.println("tokDbNameStack.size()>0");
 					}
-				}else {
+				} else {
 					System.out.println("ast.getChildCount() ！= 2");
 					System.out.println("ast.getChildCount() ！= 2");
 				}
-				
-				for(int i=0;i<aliasFieldList.size();i++) {
-					fieldAliasMap2.put(unescapeIdentifier(ast.getChild(1).getText()).toLowerCase()+"."+aliasFieldList.get(i), cleanFieldList.get(i));
+
+				for (int i = 0; i < aliasFieldList.size(); i++) {
+					fieldAliasMap2.put(
+							unescapeIdentifier(ast.getChild(1).getText()).toLowerCase() + "." + aliasFieldList.get(i),
+							cleanFieldList.get(i));
 				}
 				aliasFieldList.clear();
 				cleanFieldList.clear();
 				System.out.println("TOK_SUBQUERY");
-				
+
 				break;
 			case HiveParser.TOK_TABREF:// inputTable
 				ASTNode tabTree = (ASTNode) ast.getChild(0);
@@ -169,10 +187,10 @@ public class HiveTableLineageParserBriefTemp4 {
 
 				if (ast.getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL) {
 					fieldName = ast.getChild(0).getChild(0).getText().toLowerCase();
-					cleanFieldName=fieldName;
+					cleanFieldName = fieldName;
 					aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 
-					System.out.print("currentTable:"+currentTable+"\t");
+					System.out.print("currentTable:" + currentTable + "\t");
 					System.out.println("字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + fieldName);
 					fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName, fieldName);
 				} else if (ast.getChild(0).getType() == HiveParser.TOK_FUNCTION) {
@@ -182,7 +200,7 @@ public class HiveTableLineageParserBriefTemp4 {
 						cleanFieldName = ast.getChild(0).getChild(1).getChild(0).getText();
 						aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 
-						System.out.print("currentTable:"+currentTable+"\t");
+						System.out.print("currentTable:" + currentTable + "\t");
 						System.out.println(
 								"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + cleanFieldName);
 						fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName, cleanFieldName);
@@ -193,26 +211,26 @@ public class HiveTableLineageParserBriefTemp4 {
 						cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getText();
 						aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 
-						System.out.print("currentTable:"+currentTable+"\t");
+						System.out.print("currentTable:" + currentTable + "\t");
 						System.out.println("字段别名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> "
 								+ tgtTableName + "." + cleanFieldName);
 						fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName,
 								tgtTableName + "." + cleanFieldName);
 
-					}else if (ast.getChild(0).getChild(0).getType() == HiveParser.KW_WHEN) {
-						//TODO
+					} else if (ast.getChild(0).getChild(0).getType() == HiveParser.KW_WHEN) {
+						// TODO
 //						System.out.println("HiveParser.KW_WHEN");
 						if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_FUNCTION) {
 							// (tok_selexpr (tok_function when (tok_function in (tok_table_or_col source)
 							// '1' '3') 1 0) is_kd_source)
-							cleanFieldName = ast.getChild(0).getChild(1).getChild(1)
-									.getChild(0).getText().toLowerCase();
+							cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(0).getText()
+									.toLowerCase();
 							aliasFieldName = ast.getChild(1).getText().toLowerCase();
 						} else if (ast.getChild(0).getChild(1).getType() == HiveParser.EQUAL) {
 							// (tok_selexpr (tok_function when (= (tok_table_or_col source) 'hello') 1 0)
 							// s_kd_source)
-							cleanFieldName = ast.getChild(0).getChild(1).getChild(0)
-									.getChild(0).getText().toLowerCase();
+							cleanFieldName = ast.getChild(0).getChild(1).getChild(0).getChild(0).getText()
+									.toLowerCase();
 							aliasFieldName = ast.getChild(1).getText().toLowerCase();
 						}
 					}
@@ -222,7 +240,7 @@ public class HiveTableLineageParserBriefTemp4 {
 						cleanFieldName = ast.getChild(0).getChild(1).getText().toLowerCase();
 						aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 
-						System.out.print("currentTable:"+currentTable+"\t");
+						System.out.print("currentTable:" + currentTable + "\t");
 						System.out.println("字段别名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> "
 								+ tgtTableName + "." + cleanFieldName);
 						fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName,
@@ -233,23 +251,23 @@ public class HiveTableLineageParserBriefTemp4 {
 					cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getText().toLowerCase();
 					aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 
-					System.out.print("currentTable:"+currentTable+"\t");
+					System.out.print("currentTable:" + currentTable + "\t");
 					System.out.println(
 							"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + cleanFieldName);
 					fieldAliasMap.put(tokTableNameStack.peek() + "." + aliasFieldName, cleanFieldName);
-				}else {
-					//TODO uncaught situations
-					cleanFieldName="NULL";
+				} else {
+					// TODO uncaught situations
+					cleanFieldName = "NULL";
 					aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 				}
-				
+
 				aliasFieldList.add(aliasFieldName);
 				cleanFieldList.add(cleanFieldName);
 //				System.out.println("TOK_SELEXPR");
 				break;
 			case HiveParser.TOK_INSERT_INTO:
 				tgtTable.setTableName(ast.getChild(0).getChild(0).getChild(0).getText());
-				
+
 				ASTNode astNode = (ASTNode) ast.getParent().getChild(1);
 				int nodeCount = ast.getParent().getChild(1).getChildCount();
 
@@ -391,16 +409,17 @@ public class HiveTableLineageParserBriefTemp4 {
 
 		JamesUtil.printDivider("insertSelectFieldMap");
 		JamesUtil.printStringMap(insertSelectFieldMap);
-		
-		for(Entry<String, String> entry:insertSelectFieldMap.entrySet()) {
-			System.out.println(entry.getValue()+" -> "+SqlLineageUtil.findSrcField(entry.getValue(), fieldAliasMap));
+
+		for (Entry<String, String> entry : insertSelectFieldMap.entrySet()) {
+			System.out
+					.println(entry.getValue() + " -> " + SqlLineageUtil.findSrcField(entry.getValue(), fieldAliasMap));
 		}
 
 		JamesUtil.printDivider("tokDbNameStack");
 		JamesUtil.printStack(tokDbNameStack);
 		JamesUtil.printDivider("tokTableNameStack");
 		JamesUtil.printStack(tokTableNameStack);
-		
+
 //		JamesUtil.printDivider("tableAliasSetMap");
 //		for (Entry<String, Set<String>> set : tableAliasSetMap.entrySet()) {
 //			System.out.println(set.getKey() + " -> ");
@@ -409,17 +428,20 @@ public class HiveTableLineageParserBriefTemp4 {
 //			}
 //			System.out.println();
 //		}
-		
-//		JamesUtil.printDivider("tableAliasMap");
-//		JamesUtil.printStringMap(tableAliasMap);
-		
+
+		JamesUtil.printDivider("tableReferAliasMap");
+		JamesUtil.printStringMap(tableReferAliasMap);
+
 		JamesUtil.printDivider("tableAliasLineageMap");
-		Collection<TableLineageInfo> list=tableAliasLineageMap.values();
-		for(TableLineageInfo e:list) {
+		Collection<TableLineageInfo> list = tableAliasLineageMap.values();
+		for (TableLineageInfo e : list) {
 			System.out.println(e);
 		}
-		
+
 		JamesUtil.printDivider("fieldAliasMap2");
 		JamesUtil.printStringMap(fieldAliasMap2);
+
+		JamesUtil.printDivider("topLevelTableAliasMap");
+		JamesUtil.printStringMap(topLevelTableAliasMap);
 	}
 }

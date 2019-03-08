@@ -29,7 +29,7 @@ public class SqlLineageUtil {
 			return findSrcField(srcField, fieldAliasMap);
 		}
 	}
-	
+
 	/**
 	 * tableAliasLineageMap中查找原始表的名称
 	 * 
@@ -37,19 +37,50 @@ public class SqlLineageUtil {
 	 * @param tableAliasLineageMap
 	 * @return
 	 */
-	public static Set<String> findSrcTable(String tableAliasName,Map<String,TableLineageInfo> tableAliasLineageMap) {
-		if(null==tableAliasName||null==tableAliasLineageMap||0==tableAliasLineageMap.size()) {
+	public static Set<String> findSrcTable(String tableAliasName, Map<String, TableLineageInfo> tableAliasLineageMap) {
+		if (null == tableAliasName || null == tableAliasLineageMap || 0 == tableAliasLineageMap.size()) {
 			return null;
 		}
-		
+
 		return tableAliasLineageMap.get(tableAliasName).getTableAliasReferMap().keySet();
 	}
-	
-	public static Set<String> findSrcTable(String tableAliasName,Map<String,TableLineageInfo> tableAliasLineageMap,Stack<String> tokTableNameStack ) {
-		if(null==tableAliasName||null==tableAliasLineageMap||0==tableAliasLineageMap.size()) {
+
+	public static Set<String> findSrcTable(String tableAliasName, Map<String, TableLineageInfo> tableAliasLineageMap,
+			Stack<String> tokTableNameStack) {
+		if (null == tableAliasName || null == tableAliasLineageMap || 0 == tableAliasLineageMap.size()) {
 			return null;
 		}
-		
+
 		return tableAliasLineageMap.get(tableAliasName).getTableAliasReferMap().keySet();
 	}
+
+	public static List<String> addAliasName(String field, Map<String, String> topLevelTableAliasMap) {
+		if (null == field) {
+			return null;
+		}
+
+		List<String> list = new ArrayList<String>();
+
+		if (field.contains(".")) {
+			list.add(field);
+		} else {
+			Set<String> set = topLevelTableAliasMap.keySet();
+			for (String k : set) {
+				list.add(k + "." + field);
+			}
+		}
+
+		return list;
+	}
+
+//	public static Set<String> getTopLevelTableAlias(Map<String, TableLineageInfo> tableAliasLineageMap){
+//		if(null==tableAliasLineageMap||0==tableAliasLineageMap.size()) {
+//			return null;
+//		}
+//		
+//		Collection<TableLineageInfo> infos=tableAliasLineageMap.values();
+//		for(TableLineageInfo info:infos) {
+//			if()
+//		}
+//	}
 }
