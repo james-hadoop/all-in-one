@@ -43,6 +43,19 @@ public class SqlLineageUtil {
 
 		return tableAliasLineageMap.get(tableAliasName).getTableAliasReferMap().keySet();
 	}
+	
+	   public static String replaceWithSrcTableName(String aliasFieldName, Map<String, TableLineageInfo> tableAliasLineageMap) {
+	        if (null == aliasFieldName ||!aliasFieldName.contains(".")|| null == tableAliasLineageMap || 0 == tableAliasLineageMap.size()) {
+	            return null;
+	        }
+	        
+	        
+	        String aliasTableName=aliasFieldName.substring(0, aliasFieldName.indexOf("."));
+	        
+	        String srcFieldName=aliasFieldName.replace(aliasTableName+".", tableAliasLineageMap.get(aliasTableName).getTableAliasReferMap().get(aliasTableName)+".");
+	        
+	        return srcFieldName;
+	    }
 
 	public static Set<String> findSrcTable(String tableAliasName, Map<String, TableLineageInfo> tableAliasLineageMap,
 			Stack<String> tokTableNameStack) {

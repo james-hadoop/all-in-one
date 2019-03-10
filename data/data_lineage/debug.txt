@@ -9,6 +9,7 @@ s_a -> s_a
 s_kd_source -> source
 uv -> uv
 
+
 // transformed
 c.vv
 d.vv
@@ -43,4 +44,17 @@ c.vv -> vv
 d.puin -> puin
 d.row_key -> row_key
 d.source -> get_json_object
+
+
+// map1st
+row_key -> b.row_key
+d_puin -> d.puin
+uv -> a.cuin
+a_vv -> b.vv
+c_uv -> a.cuin
+is_kd_source -> d.get_json_object
+s_kd_source -> d.get_json_object
+puin -> a.puin
+
+
 
