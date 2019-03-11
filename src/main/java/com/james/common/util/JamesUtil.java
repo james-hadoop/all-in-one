@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.james.dataStructure.tree.BinTree.TreeNode;
 
 public class JamesUtil {
@@ -149,6 +152,16 @@ public class JamesUtil {
 		}
 
 		return text;
+	}
+	
+	public static void printPairList(List<ImmutablePair<String, String>> pairList) {
+		if(null==pairList||0==pairList.size()) {
+			return;
+		}
+		
+		for(Pair<String, String> p:pairList) {
+			System.out.println(p.getLeft()+ " -> "+p.getRight());
+		}
 	}
 
 	public static void main(String[] args) {

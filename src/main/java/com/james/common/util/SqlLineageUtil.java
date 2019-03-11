@@ -1,11 +1,40 @@
 package com.james.common.util;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.stream.Stream;
 
+import com.james.hive.parser.entity.TableNode;
+import com.james.hive.parser.entity.TableRelation;
 import com.james.temp.TableLineageInfo;
+
+import it.uniroma1.dis.wsngroup.gexf4j.core.EdgeType;
+import it.uniroma1.dis.wsngroup.gexf4j.core.Gexf;
+import it.uniroma1.dis.wsngroup.gexf4j.core.Graph;
+import it.uniroma1.dis.wsngroup.gexf4j.core.Mode;
+import it.uniroma1.dis.wsngroup.gexf4j.core.Node;
+import it.uniroma1.dis.wsngroup.gexf4j.core.data.Attribute;
+import it.uniroma1.dis.wsngroup.gexf4j.core.data.AttributeClass;
+import it.uniroma1.dis.wsngroup.gexf4j.core.data.AttributeList;
+import it.uniroma1.dis.wsngroup.gexf4j.core.data.AttributeType;
+import it.uniroma1.dis.wsngroup.gexf4j.core.impl.GexfImpl;
+import it.uniroma1.dis.wsngroup.gexf4j.core.impl.StaxGraphWriter;
+import it.uniroma1.dis.wsngroup.gexf4j.core.impl.data.AttributeListImpl;
+import it.uniroma1.dis.wsngroup.gexf4j.core.impl.viz.ColorImpl;
+import it.uniroma1.dis.wsngroup.gexf4j.core.impl.viz.PositionImpl;
 
 public class SqlLineageUtil {
 	/**
@@ -43,19 +72,21 @@ public class SqlLineageUtil {
 
 		return tableAliasLineageMap.get(tableAliasName).getTableAliasReferMap().keySet();
 	}
-	
-	   public static String replaceWithSrcTableName(String aliasFieldName, Map<String, TableLineageInfo> tableAliasLineageMap) {
-	        if (null == aliasFieldName ||!aliasFieldName.contains(".")|| null == tableAliasLineageMap || 0 == tableAliasLineageMap.size()) {
-	            return null;
-	        }
-	        
-	        
-	        String aliasTableName=aliasFieldName.substring(0, aliasFieldName.indexOf("."));
-	        
-	        String srcFieldName=aliasFieldName.replace(aliasTableName+".", tableAliasLineageMap.get(aliasTableName).getTableAliasReferMap().get(aliasTableName)+".");
-	        
-	        return srcFieldName;
-	    }
+
+	public static String replaceWithSrcTableName(String aliasFieldName,
+			Map<String, TableLineageInfo> tableAliasLineageMap) {
+		if (null == aliasFieldName || !aliasFieldName.contains(".") || null == tableAliasLineageMap
+				|| 0 == tableAliasLineageMap.size()) {
+			return null;
+		}
+
+		String aliasTableName = aliasFieldName.substring(0, aliasFieldName.indexOf("."));
+
+		String srcFieldName = aliasFieldName.replace(aliasTableName + ".",
+				tableAliasLineageMap.get(aliasTableName).getTableAliasReferMap().get(aliasTableName) + ".");
+
+		return srcFieldName;
+	}
 
 	public static Set<String> findSrcTable(String tableAliasName, Map<String, TableLineageInfo> tableAliasLineageMap,
 			Stack<String> tokTableNameStack) {
@@ -141,18 +172,127 @@ public class SqlLineageUtil {
 		return set;
 	}
 
-	// TODO
+	public static TableRelation generateTableRelation(Map<String, String> fieldMap, String tgtTableName) {
+		if (null == fieldMap || 0 == fieldMap.size() || null == tgtTableName) {
+			return null;
+		}
 
-//	public static Map<String,String> find 
+		// target
+		List<String> tgtFieldList = new ArrayList<String>();
+		tgtFieldList.addAll(fieldMap.keySet());
 
-//	public static Set<String> getTopLevelTableAlias(Map<String, TableLineageInfo> tableAliasLineageMap){
-//		if(null==tableAliasLineageMap||0==tableAliasLineageMap.size()) {
+		TableNode target = new TableNode(tgtTableName, tgtFieldList);
+
+		// sources
+		Map<String, List<String>> srcTableFieldMap = parseSrcTableField(fieldMap);
+		List<TableNode> sources = new ArrayList<TableNode>();
+
+		for (Entry<String, List<String>> e : srcTableFieldMap.entrySet()) {
+			sources.add(new TableNode(e.getKey(), e.getValue()));
+		}
+
+		TableRelation tableRelation = new TableRelation(sources, target);
+
+		return tableRelation;
+	}
+
+	public static String makeGexf(TableRelation relation) throws IOException {
+		if (null == relation) {
+			return null;
+		}
+
+		Gexf gexf = new GexfImpl();
+		Calendar date = Calendar.getInstance();
+
+		gexf.getMetadata().setLastModified(date.getTime()).setCreator("james").setDescription("TableRelation");
+		gexf.setVisualization(true);
+
+		Graph graph = gexf.getGraph();
+		graph.setDefaultEdgeType(EdgeType.UNDIRECTED).setMode(Mode.STATIC);
+
+		AttributeList attrList = new AttributeListImpl(AttributeClass.NODE);
+		graph.getAttributeLists().add(attrList);
+
+		Attribute clazz = attrList.createAttribute("modularity_class", AttributeType.INTEGER, "Class");
+
+		Node tgtNode = graph.createNode("0");
+		tgtNode.setLabel(relation.getTarget().getTableName() + "_label").getAttributeValues().addValue(clazz,
+				"0");
+		tgtNode.setSize(50).setPosition(new PositionImpl(-200, 200, 0)).setColor(new ColorImpl(235, 81, 72));
+
+		List<Node> srcNodeList = new ArrayList<Node>();
+		for (int i = 0; i < relation.getSources().size(); i++) {
+			Node srcNode = graph.createNode(Integer.toString(i + 1));
+			srcNode.setLabel(relation.getSources().get(i).getTableName() + "_label").getAttributeValues()
+					.addValue(clazz, Integer.toString(i));
+			srcNode.setSize(50).setPosition(new PositionImpl(-300, 100 * (i + 1), 0))
+					.setColor(new ColorImpl(235, 81, 72));
+
+			srcNodeList.add(srcNode);
+		}
+
+		for (Node srcNode : srcNodeList) {
+			srcNode.connectTo("0", tgtNode).setWeight(5.0f);
+		}
+
+		StaxGraphWriter graphWriter = new StaxGraphWriter();
+		File f = new File("data/gexf/table_relation.gexf");
+		f.createNewFile();
+
+		Writer out;
+		try {
+			out = new FileWriter(f, false);
+			graphWriter.writeToStream(gexf, out, "UTF-8");
+			System.out.println(f.getAbsolutePath());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return null;
+	}
+
+//	private static ImmutablePair<String,String> parseTableField(String tableField){
+//		if(null==tableField||!tableField.contains(".")) {
 //			return null;
 //		}
 //		
-//		Collection<TableLineageInfo> infos=tableAliasLineageMap.values();
-//		for(TableLineageInfo info:infos) {
-//			if()
-//		}
+//		String table=tableField.substring(0, tableField.lastIndexOf("."));
+//		String field=tableField.substring(tableField.lastIndexOf(".")+1,tableField.length());
+//		
+//		ImmutablePair<String,String> pair=new ImmutablePair<String,String>(table,field);
+//		
+//		return pair;
 //	}
+
+	private static Map<String, List<String>> parseSrcTableField(Map<String, String> fieldMap) {
+		if (null == fieldMap || 0 == fieldMap.size()) {
+			return null;
+		}
+
+		Map<String, List<String>> map = new HashMap<String, List<String>>();
+		for (String v : fieldMap.values()) {
+			String table = v.substring(0, v.lastIndexOf("."));
+			String field = v.substring(v.lastIndexOf(".") + 1, v.length());
+
+			if (null == map.get(table)) {
+				List<String> list = new ArrayList<String>();
+				list.add(field);
+
+				map.put(table, list);
+			} else {
+				map.get(table).add(field);
+			}
+		}
+
+		return map;
+	}
+
+	public static <K, V extends Comparable<? super V>> Map<K, V> sortMapByValue(Map<K, V> map) {
+		Map<K, V> result = new LinkedHashMap<>();
+		Stream<Entry<K, V>> st = map.entrySet().stream();
+
+		st.sorted(Comparator.comparing(e -> e.getValue())).forEach(e -> result.put(e.getKey(), e.getValue()));
+
+		return result;
+	}
 }

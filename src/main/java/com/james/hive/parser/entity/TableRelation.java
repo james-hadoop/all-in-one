@@ -22,6 +22,12 @@ public class TableRelation {
 		this.target = target;
 		columnRelations = null;
 	}
+	
+	public TableRelation(TableNode target) {
+		this.sources = null;
+		this.target = target;
+		columnRelations = null;
+	}
 
 	public List<TableNode> getSources() {
 		return sources;

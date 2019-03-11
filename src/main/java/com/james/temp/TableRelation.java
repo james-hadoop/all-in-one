@@ -3,13 +3,10 @@ package com.james.temp;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 public class TableRelation {
 	private List<TableNode> sources;
 	private TableNode target;
 	private Map<String, String> columnRelations;
-	private List<Pair<String, String>> colRel;
 
 	public TableRelation() {
 	}
@@ -48,14 +45,6 @@ public class TableRelation {
 
 	public void setColumnRelations(Map<String, String> columnRelations) {
 		this.columnRelations = columnRelations;
-	}
-
-	public List<Pair<String, String>> getColRel() {
-		return colRel;
-	}
-
-	public void setColRel(List<Pair<String, String>> colRel) {
-		this.colRel = colRel;
 	}
 
 	@Override
