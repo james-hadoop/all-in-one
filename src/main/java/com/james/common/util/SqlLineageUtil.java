@@ -216,15 +216,14 @@ public class SqlLineageUtil {
 		Attribute clazz = attrList.createAttribute("modularity_class", AttributeType.INTEGER, "Class");
 
 		Node tgtNode = graph.createNode("0");
-		tgtNode.setLabel(relation.getTarget().getTableName() + "_label").getAttributeValues().addValue(clazz,
-				"0");
+		tgtNode.setLabel(relation.getTarget().getTableName()).getAttributeValues().addValue(clazz, "0");
 		tgtNode.setSize(50).setPosition(new PositionImpl(-200, 200, 0)).setColor(new ColorImpl(235, 81, 72));
 
 		List<Node> srcNodeList = new ArrayList<Node>();
 		for (int i = 0; i < relation.getSources().size(); i++) {
 			Node srcNode = graph.createNode(Integer.toString(i + 1));
-			srcNode.setLabel(relation.getSources().get(i).getTableName() + "_label").getAttributeValues()
-					.addValue(clazz, Integer.toString(i));
+			srcNode.setLabel(relation.getSources().get(i).getTableName()).getAttributeValues().addValue(clazz,
+					Integer.toString(i + 2));
 			srcNode.setSize(50).setPosition(new PositionImpl(-300, 100 * (i + 1), 0))
 					.setColor(new ColorImpl(235, 81, 72));
 
