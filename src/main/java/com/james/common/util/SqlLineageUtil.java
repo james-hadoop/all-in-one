@@ -249,19 +249,16 @@ public class SqlLineageUtil {
 
 		return null;
 	}
-
-//	private static ImmutablePair<String,String> parseTableField(String tableField){
-//		if(null==tableField||!tableField.contains(".")) {
-//			return null;
-//		}
-//		
-//		String table=tableField.substring(0, tableField.lastIndexOf("."));
-//		String field=tableField.substring(tableField.lastIndexOf(".")+1,tableField.length());
-//		
-//		ImmutablePair<String,String> pair=new ImmutablePair<String,String>(table,field);
-//		
-//		return pair;
-//	}
+	
+	public static String unescapeIdentifier(String val) {
+		if (val == null) {
+			return null;
+		}
+		if (val.charAt(0) == '`' && val.charAt(val.length() - 1) == '`') {
+			val = val.substring(1, val.length() - 1);
+		}
+		return val;
+	}
 
 	private static Map<String, List<String>> parseSrcTableField(Map<String, String> fieldMap) {
 		if (null == fieldMap || 0 == fieldMap.size()) {
