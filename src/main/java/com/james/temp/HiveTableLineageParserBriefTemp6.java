@@ -214,18 +214,35 @@ public class HiveTableLineageParserBriefTemp6 {
 					} else if (ast.getChild(0).getChild(0).getType() == HiveParser.KW_WHEN) {
 						// System.out.println("HiveParser.KW_WHEN");
 						if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_FUNCTION) {
-							// (tok_selexpr (tok_function when (tok_function in (tok_table_or_col source)
-							// '1' '3') 1 0) is_kd_source)
-							cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(0).getText()
-									.toLowerCase();
-							aliasFieldName = ast.getChild(1).getText().toLowerCase();
+							if (ast.getChild(0).getChild(1).getChild(1).getChildCount() > 1) {
+								cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(1).getChild(1)
+										.getChild(0).getText().toLowerCase();
+								aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
+							} else {
+								// (tok_selexpr (tok_function when (tok_function in (tok_table_or_col source)
+								// '1' '3') 1 0) is_kd_source)
+								cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(0).getText()
+										.toLowerCase();
+								aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
+							}
+							System.out.println("ast.getChild(0).getChild(1).getType() == HiveParser.TOK_FUNCTION");
+
+							// TODO
 						} else if (ast.getChild(0).getChild(1).getType() == HiveParser.EQUAL) {
 							// (tok_selexpr (tok_function when (= (tok_table_or_col source) 'hello') 1 0)
 							// s_kd_source)
 							cleanFieldName = ast.getChild(0).getChild(1).getChild(0).getChild(0).getText()
 									.toLowerCase();
-							aliasFieldName = ast.getChild(1).getText().toLowerCase();
+							aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
+						} else if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_WINDOWSPEC) {
+							// TODO HiveParser.TOK_WINDOWSPEC
+						} else {
+							// TODO
+							System.out.println("unprocessed situation");
 						}
+					} else {
+						// TODO
+						System.out.println("unprocessed situation");
 					}
 				} else if (ast.getChild(0).getType() == HiveParser.DOT) {
 					if (ast.getChild(0).getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL) {
@@ -246,7 +263,8 @@ public class HiveTableLineageParserBriefTemp6 {
 					System.out.println(
 							"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + cleanFieldName);
 				} else {
-					// TODO processed situations
+					// TODO
+					System.out.println("unprocessed situation");
 				}
 
 				aliasFieldList.add(aliasFieldName);
@@ -449,7 +467,7 @@ public class HiveTableLineageParserBriefTemp6 {
 		TableRelation tableRelation = SqlLineageUtil.generateTableRelation(ultraFieldMap, "tgtTableName");
 		JamesUtil.printDivider("tableRelation");
 		System.out.println(tableRelation);
-		
+
 		SqlLineageUtil.makeGexf(tableRelation);
 	}
 }

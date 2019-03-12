@@ -191,7 +191,7 @@ public class SqlLineageUtil {
 			sources.add(new TableNode(e.getKey(), e.getValue()));
 		}
 
-		TableRelation tableRelation = new TableRelation(sources, target);
+		TableRelation tableRelation = new TableRelation(sources, target, fieldMap);
 
 		return tableRelation;
 	}

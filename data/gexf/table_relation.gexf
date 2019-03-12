@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <gexf xmlns="http://www.gexf.net/1.2draft" xmlns:viz="http://www.gexf.net/1.2draft/viz" version="1.2">
- <meta lastmodifieddate="2019-03-11">
+ <meta lastmodifieddate="2019-03-12">
   <creator>james</creator>
   <description>TableRelation</description>
  </meta>
@@ -8,7 +8,7 @@
   <attributes class="node" mode="static">
    <attribute id="modularity_class" title="Class" type="integer"/>
   </attributes>
-  <nodes count="3">
+  <nodes count="4">
    <node id="0" label="tgtTableName">
     <attvalues>
      <attvalue for="modularity_class" value="0"/>
@@ -17,7 +17,7 @@
     <viz:position x="-200.0" y="200.0" z="0.0"/>
     <viz:size value="50.0"/>
    </node>
-   <node id="1" label="t_b">
+   <node id="1" label="sng_cp_fact.v_ty_audit_all_video_play_basic_info_check_clean">
     <attvalues>
      <attvalue for="modularity_class" value="2"/>
     </attvalues>
@@ -25,7 +25,7 @@
     <viz:position x="-300.0" y="100.0" z="0.0"/>
     <viz:size value="50.0"/>
    </node>
-   <node id="2" label="t_a">
+   <node id="2" label="sng_cp_fact.v_ty_bbbb">
     <attvalues>
      <attvalue for="modularity_class" value="3"/>
     </attvalues>
@@ -33,10 +33,19 @@
     <viz:position x="-300.0" y="200.0" z="0.0"/>
     <viz:size value="50.0"/>
    </node>
+   <node id="3" label="sng_tdbank.cc_dsl_content_center_rpt_fdt0">
+    <attvalues>
+     <attvalue for="modularity_class" value="4"/>
+    </attvalues>
+    <viz:color r="235" g="81" b="72"/>
+    <viz:position x="-300.0" y="300.0" z="0.0"/>
+    <viz:size value="50.0"/>
+   </node>
   </nodes>
-  <edges count="2">
+  <edges count="3">
    <edge id="0" source="1" target="0" type="undirected" weight="5.0"/>
    <edge id="0" source="2" target="0" type="undirected" weight="5.0"/>
+   <edge id="0" source="3" target="0" type="undirected" weight="5.0"/>
   </edges>
  </graph>
 </gexf>

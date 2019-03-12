@@ -1,5 +1,6 @@
 package com.james.temp;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import org.apache.hadoop.hive.ql.parse.ParseDriver;
 
 import com.james.common.util.JamesUtil;
 import com.james.common.util.SqlLineageUtil;
+import com.james.hive.parser.entity.TableRelation;
 
 public class HiveTableLineageParserBrief {
 	/*
@@ -46,7 +48,7 @@ public class HiveTableLineageParserBrief {
 	private static Map<String, String> tableReferAliasMap = new HashMap<String, String>();
 
 	private static String currentTable = "";
-	private static Map<String, String> fieldAliasMap2 = new TreeMap<String, String>();
+	private static Map<String, String> fieldAliasMap = new TreeMap<String, String>();
 
 	private static List<String> aliasFieldList = new ArrayList<String>();
 	private static List<String> cleanFieldList = new ArrayList<String>();
@@ -55,10 +57,10 @@ public class HiveTableLineageParserBrief {
 
 	// 1st round transform
 	private static Map<String, String> map1st = new HashMap<String, String>();
-	
+
 	// ParseDriver pd
-	private static ParseDriver pd= new ParseDriver();
-	
+	private static ParseDriver pd = new ParseDriver();
+
 	// 1st round transform
 	private static List<ImmutablePair<String, String>> pairList = new ArrayList<ImmutablePair<String, String>>();
 
@@ -154,7 +156,7 @@ public class HiveTableLineageParserBrief {
 				}
 
 				for (int i = 0; i < aliasFieldList.size(); i++) {
-					fieldAliasMap2.put(
+					fieldAliasMap.put(
 							unescapeIdentifier(ast.getChild(1).getText()).toLowerCase() + "." + aliasFieldList.get(i),
 							cleanFieldList.get(i));
 				}
@@ -212,18 +214,35 @@ public class HiveTableLineageParserBrief {
 					} else if (ast.getChild(0).getChild(0).getType() == HiveParser.KW_WHEN) {
 						// System.out.println("HiveParser.KW_WHEN");
 						if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_FUNCTION) {
-							// (tok_selexpr (tok_function when (tok_function in (tok_table_or_col source)
-							// '1' '3') 1 0) is_kd_source)
-							cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(0).getText()
-									.toLowerCase();
-							aliasFieldName = ast.getChild(1).getText().toLowerCase();
+							if (ast.getChild(0).getChild(1).getChild(1).getChildCount() > 1) {
+								cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(1).getChild(1)
+										.getChild(0).getText().toLowerCase();
+								aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
+							} else {
+								// (tok_selexpr (tok_function when (tok_function in (tok_table_or_col source)
+								// '1' '3') 1 0) is_kd_source)
+								cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(0).getText()
+										.toLowerCase();
+								aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
+							}
+							System.out.println("ast.getChild(0).getChild(1).getType() == HiveParser.TOK_FUNCTION");
+
+							// TODO
 						} else if (ast.getChild(0).getChild(1).getType() == HiveParser.EQUAL) {
 							// (tok_selexpr (tok_function when (= (tok_table_or_col source) 'hello') 1 0)
 							// s_kd_source)
 							cleanFieldName = ast.getChild(0).getChild(1).getChild(0).getChild(0).getText()
 									.toLowerCase();
-							aliasFieldName = ast.getChild(1).getText().toLowerCase();
+							aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
+						} else if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_WINDOWSPEC) {
+							// TODO HiveParser.TOK_WINDOWSPEC
+						} else {
+							// TODO
+							System.out.println("unprocessed situation");
 						}
+					} else {
+						// TODO
+						System.out.println("unprocessed situation");
 					}
 				} else if (ast.getChild(0).getType() == HiveParser.DOT) {
 					if (ast.getChild(0).getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL) {
@@ -244,7 +263,8 @@ public class HiveTableLineageParserBrief {
 					System.out.println(
 							"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + cleanFieldName);
 				} else {
-					// TODO processed situations
+					// TODO
+					System.out.println("unprocessed situation");
 				}
 
 				aliasFieldList.add(aliasFieldName);
@@ -344,7 +364,7 @@ public class HiveTableLineageParserBrief {
 		parseIteral(ast);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 //		ParseDriver pd = new ParseDriver();
 
 		String sqlDemo = "INSERT INTO TABLE f_tt SELECT at_a.a_a AS f_a_a, at_b.b_b AS f_b_b, at_b.b_c AS f_b_c FROM(SELECT a_key, MAX(a_a) AS a_a, MAX(a_b) AS a_b, MAX(a_c) AS a_c FROM t_a WHERE a_c = 3 GROUP BY a_key ORDER BY a_a) at_a LEFT JOIN (SELECT b_key, MAX(b_a) AS b_a, MAX(b_b) AS b_b, MAX(b_c) AS b_c FROM t_b GROUP BY b_key ORDER BY b_b) at_b ON at_a.a_key = at_b.b_key";
@@ -354,9 +374,9 @@ public class HiveTableLineageParserBrief {
 
 		String parsesql = sql61;
 		System.out.println(parsesql);
-		
+
 //		HiveTableLineageParserBriefTemp6 hp = new HiveTableLineageParserBriefTemp6();
-		
+
 		ASTNode ast = null;
 		try {
 			ast = pd.parse(parsesql);
@@ -364,9 +384,9 @@ public class HiveTableLineageParserBrief {
 			e.printStackTrace();
 		}
 		System.out.println(ast.toStringTree());
-		
+
 		JamesUtil.printDivider();
-		HiveTableLineageParserBriefTemp6.parse(ast);
+		HiveTableLineageParserBrief.parse(ast);
 
 		JamesUtil.printDivider();
 		System.out.println(tgtTable.getTableName());
@@ -374,16 +394,12 @@ public class HiveTableLineageParserBrief {
 			System.out.println(t.getTableName());
 		}
 
-		JamesUtil.printDivider("tableRelation");
-		TableRelation tableRelation = new TableRelation(srcTables, tgtTable);
-		System.out.println(tableRelation);
-
 		JamesUtil.printDivider("insertSelectFieldMap");
 		JamesUtil.printStringMap(insertSelectFieldMap);
 
 		for (Entry<String, String> entry : insertSelectFieldMap.entrySet()) {
 			System.out
-					.println(entry.getValue() + " -> " + SqlLineageUtil.findSrcField(entry.getValue(), fieldAliasMap2));
+					.println(entry.getValue() + " -> " + SqlLineageUtil.findSrcField(entry.getValue(), fieldAliasMap));
 		}
 
 		JamesUtil.printDivider("tokDbNameStack");
@@ -400,8 +416,8 @@ public class HiveTableLineageParserBrief {
 			System.out.println(e);
 		}
 
-		JamesUtil.printDivider("fieldAliasMap2");
-		JamesUtil.printStringMap(fieldAliasMap2);
+		JamesUtil.printDivider("fieldAliasMap");
+		JamesUtil.printStringMap(fieldAliasMap);
 
 		JamesUtil.printDivider("topLevelTableAliasMap");
 		JamesUtil.printStringMap(topLevelTableAliasMap);
@@ -413,13 +429,13 @@ public class HiveTableLineageParserBrief {
 			Set<String> s1 = SqlLineageUtil.addAliasName(e.getValue(), topLevelTableAliasMap);
 			if (null != s1) {
 				for (String i1 : s1) {
-					System.out.println("\t" + i1);
-					System.out.println("-------- i1 --------");
-					Set<String> s2 = SqlLineageUtil.addAliasName2(i1, fieldAliasMap2);
+//					System.out.println("\t" + i1);
+//					System.out.println("-------- i1 --------");
+					Set<String> s2 = SqlLineageUtil.addAliasName2(i1, fieldAliasMap);
 					if (null != s2) {
 						for (String i2 : s2) {
-							System.out.println("\t" + i2);
-							System.out.println("-------- i2 --------");
+//							System.out.println("\t" + i2);
+//							System.out.println("-------- i2 --------");
 							Set<String> s3 = SqlLineageUtil.addReferTableName(i2, tableAliasLineageMap);
 							if (null != s3) {
 								for (String i3 : s3) {
@@ -427,7 +443,7 @@ public class HiveTableLineageParserBrief {
 									System.out.println("-------- i3 --------");
 
 									map1st.put(e.getKey(), i3);
-									pairList.add(new ImmutablePair<String,String>(e.getKey(), i3));
+									pairList.add(new ImmutablePair<String, String>(e.getKey(), i3));
 								}
 							}
 						}
@@ -440,9 +456,18 @@ public class HiveTableLineageParserBrief {
 		JamesUtil.printDivider("map1st");
 		JamesUtil.printStringMap(map1st);
 		JamesUtil.printDivider();
+
+		Map<String, String> ultraFieldMap = new HashMap<String, String>();
 		for (Entry<String, String> e : map1st.entrySet()) {
-			System.out.println(e.getKey() + " -> " + e.getValue() + " -> "
-					+ SqlLineageUtil.replaceWithSrcTableName(e.getValue(), tableAliasLineageMap));
+			ultraFieldMap.put(e.getKey(), SqlLineageUtil.replaceWithSrcTableName(e.getValue(), tableAliasLineageMap));
 		}
+		JamesUtil.printDivider("ultraFieldMap");
+		JamesUtil.printStringMap(ultraFieldMap);
+
+		TableRelation tableRelation = SqlLineageUtil.generateTableRelation(ultraFieldMap, "tgtTableName");
+		JamesUtil.printDivider("tableRelation");
+		System.out.println(tableRelation);
+
+		SqlLineageUtil.makeGexf(tableRelation);
 	}
 }
