@@ -1,0 +1,42 @@
+(tok_query 
+	(tok_from 
+		(tok_leftouterjoin 
+			(tok_subquery (tok_query (tok_from (tok_tabref (tok_tabname t_a))) 
+				(tok_insert (tok_destination (tok_dir tok_tmp_file)) 
+					(tok_select 
+						(tok_selexpr (tok_table_or_col a_key)) 
+						(tok_selexpr (tok_function max (tok_table_or_col a_a)) a_a) 
+						(tok_selexpr (tok_function max (tok_table_or_col a_b)) a_b) 
+						(tok_selexpr (tok_function max (tok_table_or_col a_c)) a_c)
+					) 
+					(tok_where (= (tok_table_or_col a_c) 3)) 
+					(tok_groupby (tok_table_or_col a_key)) 
+					(tok_orderby (tok_tabsortcolnameasc (tok_nulls_first (tok_table_or_col a_a))))
+				)) 
+			at_a) 
+
+			(tok_subquery (tok_query (tok_from (tok_tabref (tok_tabname t_b))) 
+				(tok_insert (tok_destination (tok_dir tok_tmp_file)) 
+					(tok_select 
+						(tok_selexpr (tok_table_or_col b_key)) 
+						(tok_selexpr (tok_function max (tok_table_or_col b_a)) b_a) 
+						(tok_selexpr (tok_function max (tok_table_or_col b_b)) b_b) 
+						(tok_selexpr (tok_function max (tok_table_or_col b_c)) b_c)) 
+					(tok_groupby (tok_table_or_col b_key)) 
+					(tok_orderby (tok_tabsortcolnameasc (tok_nulls_first (tok_table_or_col b_b))))
+				)) 
+			at_b) 
+			
+			(= (. (tok_table_or_col at_a) a_key) (. (tok_table_or_col at_b) b_key))
+
+		)
+	)
+	(tok_insert 
+		(tok_insert_into (tok_tab (tok_tabname f_tt))) 
+		(tok_select 
+			(tok_selexpr (. (tok_table_or_col at_a) a_a) f_a_a) 
+			(tok_selexpr (. (tok_table_or_col at_b) b_b) f_b_b) 
+			(tok_selexpr (. (tok_table_or_col at_b) b_c) f_b_c)
+		)
+	)
+) <eof>

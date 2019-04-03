@@ -55,7 +55,7 @@ public class HiveTableLineageParserClean {
 	private Map<String, String> topLevelTableAliasMap = new HashMap<String, String>();
 
 	// 1st round transform
-	private Map<String, String> map1st = new HashMap<String, String>();
+	private Map<String, String> searchFieldAliasMap = new HashMap<String, String>();
 
 	// ParseDriver pd
 	private static ParseDriver pd = new ParseDriver();
@@ -79,8 +79,11 @@ public class HiveTableLineageParserClean {
 					tokTableName = tokDbName + "." + ast.getChild(0).getChild(0).getChild(1).getText().toLowerCase();
 				}
 
-				tokDbNameStack.push(tokDbName.toLowerCase());
-				tokTableNameStack.push(tokTableName.toLowerCase());
+				if (!tokTableName.contains("tok_unionall")) {
+					// tokTablename does not contains "tok_unionall.a"
+					tokDbNameStack.push(tokDbName.toLowerCase());
+					tokTableNameStack.push(tokTableName.toLowerCase());
+				}
 
 				break;
 
@@ -134,7 +137,7 @@ public class HiveTableLineageParserClean {
 								TableLineageInfo tableAliasEntity = new TableLineageInfo(tableAlias, aliasMap);
 								tableAliasLineageMap.put(tableAlias, tableAliasEntity);
 								tableReferAliasMap.put(strToAdd, tableAlias);
-							}else {
+							} else {
 								tableAliasLineageMap.get(tableAlias).getTableAliasReferMap().put(tableAlias, strToAdd);
 								tableReferAliasMap.put(strToAdd, tableAlias);
 							}
@@ -143,20 +146,16 @@ public class HiveTableLineageParserClean {
 						}
 					} else {
 						// if (tokDbNameStack.size()<=0)
-//						System.out.println("tokDbNameStack.size()>0");
 					}
 				} else {
-//					System.out.println("ast.getChildCount() ！= 2");
 				}
 
 				for (int i = 0; i < aliasFieldList.size(); i++) {
-					fieldAliasMap.put(
-							SqlLineageUtil.unescapeIdentifier(ast.getChild(1).getText()).toLowerCase() + "." + aliasFieldList.get(i),
-							cleanFieldList.get(i));
+					fieldAliasMap.put(SqlLineageUtil.unescapeIdentifier(ast.getChild(1).getText()).toLowerCase() + "."
+							+ aliasFieldList.get(i), cleanFieldList.get(i));
 				}
 				aliasFieldList.clear();
 				cleanFieldList.clear();
-//				System.out.println("TOK_SUBQUERY");
 
 				break;
 
@@ -181,32 +180,18 @@ public class HiveTableLineageParserClean {
 					fieldName = ast.getChild(0).getChild(0).getText().toLowerCase();
 					cleanFieldName = fieldName;
 					aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
-
-					System.out.print("currentTable:" + currentTable + "\t");
-					System.out.println("字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + fieldName);
 				} else if (ast.getChild(0).getType() == HiveParser.TOK_FUNCTION) {
 					if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_TABLE_OR_COL) {
 						fieldName = ast.getChild(0).getChild(0).getText() + "("
 								+ ast.getChild(0).getChild(1).getChild(0).getText() + ")";
 						cleanFieldName = ast.getChild(0).getChild(1).getChild(0).getText();
 						aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
-
-						System.out.print("currentTable:" + currentTable + "\t");
-						System.out.println(
-								"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + cleanFieldName);
-
 					} else if (ast.getChild(0).getChild(1).getType() == HiveParser.DOT) {
 						String tgtTableName = ast.getChild(0).getChild(1).getChild(0).getChild(0).getText()
 								.toLowerCase();
 						cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getText();
 						aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
-
-						System.out.print("currentTable:" + currentTable + "\t");
-						System.out.println("字段别名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> "
-								+ tgtTableName + "." + cleanFieldName);
-
 					} else if (ast.getChild(0).getChild(0).getType() == HiveParser.KW_WHEN) {
-						// System.out.println("HiveParser.KW_WHEN");
 						if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_FUNCTION) {
 							if (ast.getChild(0).getChild(1).getChild(1).getChildCount() > 1) {
 								cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(1).getChild(1)
@@ -238,19 +223,10 @@ public class HiveTableLineageParserClean {
 						String tgtTableName = ast.getChild(0).getChild(0).getChild(0).getText().toLowerCase();
 						cleanFieldName = ast.getChild(0).getChild(1).getText().toLowerCase();
 						aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
-
-						System.out.print("currentTable:" + currentTable + "\t");
-						System.out.println("字段别名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> "
-								+ tgtTableName + "." + cleanFieldName);
-
 					}
 				} else if (ast.getChild(0).getType() == HiveParser.TOK_FUNCTIONDI) {
 					cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getText().toLowerCase();
 					aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
-
-					System.out.print("currentTable:" + currentTable + "\t");
-					System.out.println(
-							"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + cleanFieldName);
 				} else {
 					// TODO unprocessed situation
 				}
@@ -258,7 +234,6 @@ public class HiveTableLineageParserClean {
 				aliasFieldList.add(aliasFieldName);
 				cleanFieldList.add(cleanFieldName);
 
-				// System.out.println("TOK_SELEXPR");
 				break;
 
 			case HiveParser.TOK_INSERT_INTO:
@@ -300,27 +275,28 @@ public class HiveTableLineageParserClean {
 						// is_kd_source)
 						if (astNode.getChild(i).getChild(0).getChild(0).getType() == HiveParser.KW_WHEN) {
 							if (astNode.getChild(i).getChild(0).getChild(1).getType() == HiveParser.TOK_FUNCTION) {
-								if (ast.getChild(0).getChild(1).getChild(1).getChildCount() > 1) {
+								// (tok_selexpr (tok_function when (tok_function in (tok_table_or_col source)
+								// '1' '3') 1 0) is_kd_source)
+								if (null != astNode.getChild(i).getChild(1).getChild(1)
+										&& astNode.getChild(i).getChild(1).getChild(1).getChildCount() > 1) {
 									String fieldCleanName = ast.getChild(0).getChild(1).getChild(1).getChild(1)
 											.getChild(1).getChild(0).getText().toLowerCase();
 									String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
 									insertSelectFieldMap.put(filedAliasName, fieldCleanName);
 								}
+							} else if (astNode.getChild(i).getChild(0).getChild(1).getType() == HiveParser.EQUAL) {
+								// (tok_selexpr (tok_function when (= (tok_table_or_col source) 'hello') 1 0)
+								// s_kd_source)
+								String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(0)
+										.getChild(0).getText().toLowerCase();
+								String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
+								insertSelectFieldMap.put(filedAliasName, fieldCleanName);
 							} else {
 								String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(1)
 										.getChild(0).getText().toLowerCase();
 								String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
 								insertSelectFieldMap.put(filedAliasName, fieldCleanName);
 							}
-							// (tok_selexpr (tok_function when (tok_function in (tok_table_or_col source)
-							// '1' '3') 1 0) is_kd_source)
-						} else if (astNode.getChild(i).getChild(0).getChild(1).getType() == HiveParser.EQUAL) {
-							// (tok_selexpr (tok_function when (= (tok_table_or_col source) 'hello') 1 0)
-							// s_kd_source)
-							String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(0).getChild(0)
-									.getText().toLowerCase();
-							String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
-							insertSelectFieldMap.put(filedAliasName, fieldCleanName);
 						}
 					}
 				}
@@ -346,7 +322,7 @@ public class HiveTableLineageParserClean {
 			}
 		}
 	}
-	
+
 	public List<TableNode> getSrcTables() {
 		return srcTables;
 	}
@@ -452,11 +428,11 @@ public class HiveTableLineageParserClean {
 	}
 
 	public Map<String, String> getMap1st() {
-		return map1st;
+		return searchFieldAliasMap;
 	}
 
 	public void setMap1st(Map<String, String> map1st) {
-		this.map1st = map1st;
+		this.searchFieldAliasMap = map1st;
 	}
 
 	public List<ImmutablePair<String, String>> getPairList() {
@@ -476,12 +452,12 @@ public class HiveTableLineageParserClean {
 		}
 		System.out.println(ast.toStringTree());
 
-		HiveTableLineageParserClean parser=new HiveTableLineageParserClean();
+		HiveTableLineageParserClean parser = new HiveTableLineageParserClean();
 		parser.parseIteral(ast);
-		
+
 		return parser.parseEnd();
 	}
-	
+
 	private TableRelation parseEnd() {
 		for (Entry<String, String> e : insertSelectFieldMap.entrySet()) {
 			Set<String> s1 = SqlLineageUtil.addAliasName(e.getValue(), topLevelTableAliasMap);
@@ -493,7 +469,7 @@ public class HiveTableLineageParserClean {
 							Set<String> s3 = SqlLineageUtil.addReferTableName(i2, tableAliasLineageMap);
 							if (null != s3) {
 								for (String i3 : s3) {
-									map1st.put(e.getKey(), i3);
+									searchFieldAliasMap.put(e.getKey(), i3);
 									pairList.add(new ImmutablePair<String, String>(e.getKey(), i3));
 								}
 							}
@@ -502,33 +478,27 @@ public class HiveTableLineageParserClean {
 				}
 			}
 		}
-		
-		JamesUtil.printDivider("map1st");
-		JamesUtil.printStringMap(map1st);
-		JamesUtil.printDivider();
 
 		Map<String, String> ultraFieldMap = new HashMap<String, String>();
-		for (Entry<String, String> e : map1st.entrySet()) {
+		for (Entry<String, String> e : searchFieldAliasMap.entrySet()) {
 			ultraFieldMap.put(e.getKey(), SqlLineageUtil.replaceWithSrcTableName(e.getValue(), tableAliasLineageMap));
 		}
-		JamesUtil.printDivider("ultraFieldMap");
-		JamesUtil.printStringMap(ultraFieldMap);
 
 		TableRelation tableRelation = SqlLineageUtil.generateTableRelation(ultraFieldMap, "tgtTableName");
-		JamesUtil.printDivider("tableRelation");
-		System.out.println(tableRelation);
-		
+
 		return tableRelation;
 	}
 
 	public static void main(String[] args) throws IOException {
 		String sqlDemo = "INSERT INTO TABLE f_tt SELECT at_a.a_a AS f_a_a, at_b.b_b AS f_b_b, at_b.b_c AS f_b_c FROM(SELECT a_key, MAX(a_a) AS a_a, MAX(a_b) AS a_b, MAX(a_c) AS a_c FROM t_a WHERE a_c = 3 GROUP BY a_key ORDER BY a_a) at_a LEFT JOIN (SELECT b_key, MAX(b_a) AS b_a, MAX(b_b) AS b_b, MAX(b_c) AS b_c FROM t_b GROUP BY b_key ORDER BY b_b) at_b ON at_a.a_key = at_b.b_key";
-		String parsesql = sqlDemo;
+		String sql71="INSERT INTO TABLE sng_mp_etldata.t_kandian_tuwen_tuji_hourly SELECT * from(SELECT 2019030919 AS tdbank_imp_date, md5(A.uin,'kd_uin') AS uin, A.rowkey, B.ex_id, A.op_type, A.time,A.os,A.imei,A.idfa,A.imsi,A.op_cnt, 0 AS pic_cnt, 2 AS TYPE FROM (SELECT uin,op_type, get_json_object(d4,'$.rowkey') AS rowkey, 20190403 AS time, get_json_object(d4,'$.os') AS os, get_json_object(d4,'$.imei') AS imei, get_json_object(d4,'$.idfa') AS idfa, get_json_object(d4,'$.imsi') AS imsi, op_cnt FROM hlw.t_dw_dc01160 WHERE tdbank_imp_date = 2019030919 AND op_type IN ('0X8007625','0X8007626') AND substr(get_json_object(d4,'$.rowkey'),15,16) IN ('26','50','51','52','53','54','55','56','57','58','59') UNION ALL SELECT md5(uin,'kd_uin') AS uin,op_type, get_json_object(extra_info,'$.rowkey') AS rowkey, time, get_json_object(extra_info,'$.os') AS os, get_json_object(extra_info,'$.imei') AS imei, get_json_object(extra_info,'$.idfa') AS idfa, get_json_object(extra_info,'$.imsi') AS imsi, 1 AS op_cnt FROM sng_mp_etldata.t_mp_article_click_table_hourly WHERE tdbank_imp_date = 2019030919 AND op_type IN ('0X800662D','0X800662E') AND substr(get_json_object(extra_info,'$.rowkey'),15,16) IN ('26','50','51','52','53','54','55','56','57','58','59')) A LEFT JOIN (SELECT rowkey,ex_id FROM sng_mp_etldata.t_article_hbase_hourly_limit WHERE src IN ('26','49','50','51','52','53','54','55','56','57','58','59') AND imp_date = 2019030919) B ON A.rowkey = B.rowkey UNION ALL SELECT 2019030919 AS tdbank_imp_date, C.uin, C.rowkey, D.ex_id, C.op_type, C.time, NULL AS os, C.imei, C.idfa, C.imsi, C.op_cnt, C.pic_cnt, 1 AS TYPE FROM (SELECT md5('',uin) AS uin, op_type, get_json_object(d4,'$.rowkey') AS rowkey, reporttime AS time, imei, get_json_object(d4,'$.idfa') AS idfa, get_json_object(d4,'$.imsi') AS imsi, op_cnt, CASE WHEN op_type = '0X8008E30' THEN size(split(get_json_object(d4,'$.one_pic_reported'),'\\\\\\}\\\\\\,\\\\\\{')) ELSE 0 END AS pic_cnt FROM hlw.t_dw_dc01160 WHERE tdbank_imp_date = 2019030919 AND op_type IN ('0X8007625', '0X8007626', '0X8008E30') AND substr(get_json_object(d4,'$.rowkey'),15,2)='49')C JOIN (SELECT rowkey,ex_id FROM sng_mp_etldata.t_article_hbase_hourly_limit WHERE src = 49 AND sub_src = '490002' AND imp_date = 2019030919)D ON C.rowkey = D.rowkey) t_outer";
+		
+		String parsesql = sql71;
 		System.out.println(parsesql);
 
 		JamesUtil.printDivider();
-		TableRelation tableRelation =HiveTableLineageParserClean.parse(parsesql);
-		
+		TableRelation tableRelation = HiveTableLineageParserClean.parse(parsesql);
+
 		SqlLineageUtil.makeGexf(tableRelation);
 	}
 }
