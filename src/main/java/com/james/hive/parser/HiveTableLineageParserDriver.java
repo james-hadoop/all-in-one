@@ -1,10 +1,10 @@
-package com.james.temp;
+package com.james.hive.parser;
 
 import java.io.IOException;
 
 import com.james.common.util.JamesUtil;
-import com.james.temp.SqlLineageUtil;
-import com.james.temp.TableRelation;
+import com.james.common.util.SqlLineageUtil;
+import com.james.hive.parser.entity.TableRelation;
 
 public class HiveTableLineageParserDriver {
 	public static void main(String[] args) throws IOException {

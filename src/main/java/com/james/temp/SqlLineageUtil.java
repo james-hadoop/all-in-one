@@ -1,4 +1,4 @@
-package com.james.common.util;
+package com.james.temp;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -17,9 +17,9 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Stream;
 
-import com.james.hive.parser.entity.TableLineageInfo;
-import com.james.hive.parser.entity.TableNode;
-import com.james.hive.parser.entity.TableRelation;
+import com.james.temp.TableLineageInfo;
+import com.james.temp.TableNode;
+import com.james.temp.TableRelation;
 
 import it.uniroma1.dis.wsngroup.gexf4j.core.EdgeType;
 import it.uniroma1.dis.wsngroup.gexf4j.core.Gexf;

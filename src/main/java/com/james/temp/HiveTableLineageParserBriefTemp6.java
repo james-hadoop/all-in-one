@@ -19,8 +19,8 @@ import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 
 import com.james.common.util.JamesUtil;
-import com.james.common.util.SqlLineageUtil;
-import com.james.hive.parser.entity.TableRelation;
+import com.james.temp.SqlLineageUtil;
+import com.james.temp.TableRelation;
 
 public class HiveTableLineageParserBriefTemp6 {
 	/*
