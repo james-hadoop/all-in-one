@@ -338,7 +338,7 @@ public class SqlLineageUtil {
 	}
 
 	public static Map<String, String> flattenTableNameAliasMap(Set<String> flateningTableNameAliasSet,
-			Map<String, ArrayList<String>> tableNameAliasMap,List<ImmutablePair<String, String>> flattenedPairList) {
+			Map<String, ArrayList<String>> tableNameAliasMap,List<ImmutablePair<String, String>> flattenedPairList,String cursor) {
 		if (null == flateningTableNameAliasSet || 0 == flateningTableNameAliasSet.size() || null == tableNameAliasMap
 				|| 0 == tableNameAliasMap.size()) {
 			return null;
@@ -346,15 +346,17 @@ public class SqlLineageUtil {
 
 		Map<String, String> map = new HashMap<String, String>();
 
+		String cursorTable=cursor;
 		boolean isRecursionNeed = false;
 		for (String s : flateningTableNameAliasSet) {
 			List<String> mappingTableNameList = tableNameAliasMap.get(s);
 			
-			
+			cursorTable=null!=cursor?cursor:s;
 			if (null != mappingTableNameList) {
 				for (String mappingTableName : mappingTableNameList) {
 					map.put(mappingTableName,s);
-					flattenedPairList.add(new ImmutablePair<String, String>(s, mappingTableName));
+					
+					flattenedPairList.add(new ImmutablePair<String, String>(cursorTable, mappingTableName));
 
 					if (null != tableNameAliasMap.get(mappingTableName)) {
 						isRecursionNeed = true;
@@ -362,12 +364,12 @@ public class SqlLineageUtil {
 				}
 			} else {
 				map.put(s, s);
-				flattenedPairList.add(new ImmutablePair<String, String>(s, s));
+				flattenedPairList.add(new ImmutablePair<String, String>(cursorTable, s));
 			}
 		}
 
 		if (true == isRecursionNeed) {
-			return flattenTableNameAliasMap(map.keySet(), tableNameAliasMap,flattenedPairList);
+			return flattenTableNameAliasMap(map.keySet(), tableNameAliasMap,flattenedPairList,cursorTable);
 		} else {
 			return map;
 		}
