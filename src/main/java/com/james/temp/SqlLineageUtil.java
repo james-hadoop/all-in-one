@@ -17,9 +17,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Stream;
 
-import com.james.temp.TableLineageInfo;
-import com.james.temp.TableNode;
-import com.james.temp.TableRelation;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import it.uniroma1.dis.wsngroup.gexf4j.core.EdgeType;
 import it.uniroma1.dis.wsngroup.gexf4j.core.Gexf;
@@ -120,6 +118,27 @@ public class SqlLineageUtil {
 	}
 
 	/*
+	 * 20190411
+	 */
+	public static Set<String> addAliasName3(String field, Set<String> joinTopLevelTableSet) {
+		if (null == field) {
+			return null;
+		}
+
+		Set<String> set = new HashSet<String>();
+
+		if (field.contains(".")) {
+			set.add(field);
+		} else {
+			for (String k : joinTopLevelTableSet) {
+				set.add(k + "." + field);
+			}
+		}
+
+		return set;
+	}
+
+	/*
 	 * c.puin -> a.puin & b.puin
 	 */
 	public static Set<String> addReferTableName(String field, Map<String, TableLineageInfo> tableAliasLineageMap) {
@@ -141,6 +160,32 @@ public class SqlLineageUtil {
 		} else {
 			set.add(field);
 		}
+
+		return set;
+	}
+
+	/*
+	 * 20190411
+	 */
+	public static Set<String> addReferTableName3(String field, Map<String, ArrayList<String>> tableNameAliasMap) {
+		if (null == field || !field.contains(".")) {
+			return null;
+		}
+
+//		TableLineageInfo info = tableNameAliasMap.get(field.substring(0, field.indexOf(".")));
+//		if (null == info) {
+//			return null;
+//		}
+
+		Set<String> set = new HashSet<String>();
+//
+//		if (info.getTableAliasReferMap().size() > 1) {
+//			for (String k : info.getTableAliasReferMap().keySet()) {
+//				set.add(k + "." + field.substring(field.indexOf(".") + 1));
+//			}
+//		} else {
+//			set.add(field);
+//		}
 
 		return set;
 	}
@@ -249,7 +294,7 @@ public class SqlLineageUtil {
 
 		return null;
 	}
-	
+
 	public static String unescapeIdentifier(String val) {
 		if (val == null) {
 			return null;
@@ -290,5 +335,41 @@ public class SqlLineageUtil {
 		st.sorted(Comparator.comparing(e -> e.getValue())).forEach(e -> result.put(e.getKey(), e.getValue()));
 
 		return result;
+	}
+
+	public static Map<String, String> flattenTableNameAliasMap(Set<String> flateningTableNameAliasSet,
+			Map<String, ArrayList<String>> tableNameAliasMap,List<ImmutablePair<String, String>> flattenedPairList) {
+		if (null == flateningTableNameAliasSet || 0 == flateningTableNameAliasSet.size() || null == tableNameAliasMap
+				|| 0 == tableNameAliasMap.size()) {
+			return null;
+		}
+
+		Map<String, String> map = new HashMap<String, String>();
+
+		boolean isRecursionNeed = false;
+		for (String s : flateningTableNameAliasSet) {
+			List<String> mappingTableNameList = tableNameAliasMap.get(s);
+			
+			
+			if (null != mappingTableNameList) {
+				for (String mappingTableName : mappingTableNameList) {
+					map.put(mappingTableName,s);
+					flattenedPairList.add(new ImmutablePair<String, String>(s, mappingTableName));
+
+					if (null != tableNameAliasMap.get(mappingTableName)) {
+						isRecursionNeed = true;
+					}
+				}
+			} else {
+				map.put(s, s);
+				flattenedPairList.add(new ImmutablePair<String, String>(s, s));
+			}
+		}
+
+		if (true == isRecursionNeed) {
+			return flattenTableNameAliasMap(map.keySet(), tableNameAliasMap,flattenedPairList);
+		} else {
+			return map;
+		}
 	}
 }

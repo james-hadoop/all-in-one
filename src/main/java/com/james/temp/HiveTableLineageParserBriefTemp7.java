@@ -22,7 +22,7 @@ import com.james.common.util.JamesUtil;
 import com.james.temp.SqlLineageUtil;
 import com.james.temp.TableRelation;
 
-public class HiveTableLineageParserBriefTemp6 {
+public class HiveTableLineageParserBriefTemp7 {
 	/*
 	 * TableRelation
 	 */
@@ -94,8 +94,6 @@ public class HiveTableLineageParserBriefTemp6 {
 					currentTable = tableAlias;
 
 					tableAliasMap.put(tableAlias.toLowerCase(), tableAlias);
-					
-					System.out.println("(*) "+tableAlias+" | "+tokDbNameStack.peek()+" | "+tokTableNameStack.peek());
 
 					if (tokDbNameStack.size() > 0) {
 						String tokDBAliasName = tokDbNameStack.peek();
@@ -230,7 +228,7 @@ public class HiveTableLineageParserBriefTemp6 {
 											.toLowerCase();
 									aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 
-								} else {
+								}else {
 									System.out.println("unprocessed situation_1");
 								}
 
@@ -240,7 +238,7 @@ public class HiveTableLineageParserBriefTemp6 {
 											.toLowerCase();
 									aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 
-								} else {
+								}else {
 									System.out.println("unprocessed situation_2");
 								}
 							} else {
@@ -265,23 +263,25 @@ public class HiveTableLineageParserBriefTemp6 {
 						} else {
 							// TODO
 							System.out.println("unprocessed situation_3");
-						}
-					} else if (ast.getChild(0).getChild(0).getText().toLowerCase().equals("sum")) {
-						if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_FUNCTION) {
+						}}
+					else if (ast.getChild(0).getChild(0).getText().toLowerCase().equals("sum")) {
+						if(ast.getChild(0).getChild(1).getType()==HiveParser.TOK_FUNCTION){
 							System.out.println("sum");
-							if (ast.getChild(0).getChild(1).getChild(0).getType() == HiveParser.KW_WHEN) {
+							if(ast.getChild(0).getChild(1).getChild(0).getType()==HiveParser.KW_WHEN) {
 								if (ast.getChild(0).getChild(1).getChild(1).getType() == HiveParser.EQUAL) {
-									cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(0).getChild(0)
-											.getText().toLowerCase();
-									aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
+										cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getChild(0).getChild(0).getText()
+												.toLowerCase();
+										aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 								}
 							}
-
-						} else {
-							System.out.println("unprocessed situation_sum");
+							
+						}else {
+							System.out.println("unprocessed situation_sum");	
 						}
-
-					} else {
+						
+						
+					}
+						else {
 						// TODO
 						System.out.println("unprocessed situation_4");
 					}
@@ -331,7 +331,8 @@ public class HiveTableLineageParserBriefTemp6 {
 				int nodeCount = ast.getParent().getChild(1).getChildCount();
 
 				for (int i = 0; i < nodeCount; i++) {
-					if (astNode.getChild(i).getChildCount() == 1) {
+					if (astNode.getChild(i).getChildCount() == 1
+							&& astNode.getChild(i).getChild(0).getChildCount() == 0) {
 						// (tok_selexpr 20190226) do nothing
 					} else if (astNode.getChild(i).getChildCount() == 2
 							&& astNode.getChild(i).getChild(0).getChildCount() == 0) {
@@ -361,76 +362,30 @@ public class HiveTableLineageParserBriefTemp6 {
 						// (tok_function when (tok_function in (tok_table_or_col source) '1' '3') 1 0)
 						// is_kd_source)
 						if (astNode.getChild(i).getChild(0).getChild(0).getType() == HiveParser.KW_WHEN) {
-							System.out.println("HiveParser.KW_WHEN");
-
 							if (astNode.getChild(i).getChild(0).getChild(1).getType() == HiveParser.TOK_FUNCTION) {
-
-								if (astNode.getChild(i).getChildCount() == 1) {
-									/*
-									 * (tok_selexpr (tok_function when (tok_function tok_isnotnull (.
-									 * (tok_table_or_col y) article_uv)) (. (tok_table_or_col y) article_uv) 0))
-									 */
-									System.out.println("astNode.getChild(i).getChildCount()==1");
-								} else if (astNode.getChild(i).getChild(0).getChild(1).getChild(0)
-										.getType() == HiveParser.TOK_ISNOTNULL) {
-									System.out.println(
-											"astNode.getChild(i).getChild(0).getChild(1).getChild(1).getType()==HiveParser.TOK_ISNOTNULL");
-									// z table
-									// TODO
-									if (astNode.getChild(i).getChild(0).getChild(1).getChild(1)
-											.getType() == HiveParser.DOT) {
-										String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(1)
-												.getChild(1).getText().toLowerCase();
-										String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
-										insertSelectFieldMap.put(filedAliasName, fieldCleanName);
-									}
-								} else if (null != astNode.getChild(i).getChild(1).getChild(1)
+								// (tok_selexpr (tok_function when (tok_function in (tok_table_or_col source)
+								// '1' '3') 1 0) is_kd_source)
+								if (null != astNode.getChild(i).getChild(1).getChild(1)
 										&& astNode.getChild(i).getChild(1).getChild(1).getChildCount() > 1) {
-									/*
-									 * (tok_selexpr (tok_function when (tok_function in (tok_table_or_col source)
-									 * '1' '3') 1 0) is_kd_source)
-									 */
-
 									String fieldCleanName = ast.getChild(0).getChild(1).getChild(1).getChild(1)
 											.getChild(1).getChild(0).getText().toLowerCase();
 									String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
 									insertSelectFieldMap.put(filedAliasName, fieldCleanName);
-//								}
-								} else if (astNode.getChild(i).getChild(0).getChild(1).getType() == HiveParser.EQUAL) {
-									// (tok_selexpr (tok_function when (= (tok_table_or_col source) 'hello') 1 0)
-									// s_kd_source)
-									String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(0)
-											.getChild(0).getText().toLowerCase();
-									String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
-									insertSelectFieldMap.put(filedAliasName, fieldCleanName);
-								} else {
-									String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(1)
-											.getChild(0).getText().toLowerCase();
-									String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
-									insertSelectFieldMap.put(filedAliasName, fieldCleanName);
 								}
+							} else if (astNode.getChild(i).getChild(0).getChild(1).getType() == HiveParser.EQUAL) {
+								// (tok_selexpr (tok_function when (= (tok_table_or_col source) 'hello') 1 0)
+								// s_kd_source)
+								String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(0)
+										.getChild(0).getText().toLowerCase();
+								String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
+								insertSelectFieldMap.put(filedAliasName, fieldCleanName);
+							} else {
+								String fieldCleanName = astNode.getChild(i).getChild(0).getChild(1).getChild(1)
+										.getChild(0).getText().toLowerCase();
+								String filedAliasName = astNode.getChild(i).getChild(1).getText().toLowerCase();
+								insertSelectFieldMap.put(filedAliasName, fieldCleanName);
 							}
 						}
-//						else if() {
-//							
-//						}
-					} else if (astNode.getChild(i).getChild(0).getType() == HiveParser.DIVIDE) {
-						if (astNode.getChild(i).getChild(0).getChild(0).getType() == HiveParser.STAR) {
-							System.out.println("HiveParser.STAR...");
-							if (astNode.getChild(i).getChild(0).getChild(0).getChild(0).getChildCount() == 4) {
-								String fieldCleanName = astNode.getChild(i).getChild(0).getChild(0).getChild(0)
-										.getChild(2).getChild(1).getText().toLowerCase();
-								// do nothing
-							}
-
-						}
-						System.out.println("HiveParser.DIVIDE...");
-					} else if (astNode.getChild(i).getChild(0).getType() == HiveParser.PLUS) {
-						System.out.println("HiveParser.PLUS...");
-					} else {
-						System.out.println(astNode.getChild(i).getChild(0).getType());
-						System.out.println("INSERT_INTO unporcessed situation...");
-
 					}
 				}
 				break;
@@ -493,7 +448,7 @@ public class HiveTableLineageParserBriefTemp6 {
 		System.out.println(ast.toStringTree());
 
 		JamesUtil.printDivider();
-		HiveTableLineageParserBriefTemp6.parse(ast);
+		HiveTableLineageParserBriefTemp7.parse(ast);
 
 		JamesUtil.printDivider();
 		System.out.println(tgtTable.getTableName());

@@ -249,7 +249,7 @@ public class HiveTableLineageParserClean {
 					} else if (astNode.getChild(i).getChildCount() == 2
 							&& astNode.getChild(i).getChild(0).getChildCount() == 0) {
 						// (tok_selexpr 'aaaaa' s_a)
-						String fieldCleanName = astNode.getChild(1).getChild(1).getText().toLowerCase();
+						String fieldCleanName = astNode.getChild(i).getChild(1).getText().toLowerCase();
 						String filedAliasName = fieldCleanName;
 						insertSelectFieldMap.put(filedAliasName, fieldCleanName);
 					} else if (astNode.getChild(i).getChild(0).getType() == HiveParser.DOT) {

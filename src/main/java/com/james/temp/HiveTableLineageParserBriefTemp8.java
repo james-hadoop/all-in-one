@@ -22,7 +22,7 @@ import com.james.common.util.JamesUtil;
 import com.james.temp.SqlLineageUtil;
 import com.james.temp.TableRelation;
 
-public class HiveTableLineageParserBriefTemp6 {
+public class HiveTableLineageParserBriefTemp8 {
 	/*
 	 * TableRelation
 	 */
@@ -64,38 +64,98 @@ public class HiveTableLineageParserBriefTemp6 {
 	// 1st round transform
 	private static List<ImmutablePair<String, String>> pairList = new ArrayList<ImmutablePair<String, String>>();
 
+	// join tables stack
+	private static Stack<String> joinTopLevelTableStackTemp = new Stack<String>();
+	private static Set<String> joinTopLevelTableSet = new HashSet<String>();
+	private static Map<String, ArrayList<String>> tableNameAliasMap = new HashMap<String, ArrayList<String>>();
+
 	// parseCurrentNode
 	private static void parseCurrentNode(ASTNode ast) {
 		if (ast.getToken() != null) {
 			switch (ast.getToken().getType()) {
+			case HiveParser.TOK_LEFTOUTERJOIN:
+				System.out.println("HiveParser.TOK_LEFTOUTERJOIN");
+				if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_SUBQUERY) {
+					String currentTableAliasName = ast.getChild(1).getChild(1).getText();
+					ArrayList<String> tableAliasNameList = new ArrayList<String>();
+
+					if (joinTopLevelTableStackTemp.size() > 0) {
+						while (joinTopLevelTableStackTemp.size() > 0) {
+							String tableName = joinTopLevelTableStackTemp.pop();
+							tableAliasNameList.add(tableName);
+						}
+					}
+
+					tableNameAliasMap.put(currentTableAliasName, tableAliasNameList);
+
+					joinTopLevelTableStackTemp.push(currentTableAliasName);
+					joinTopLevelTableSet.add(currentTableAliasName);
+				} else {
+					if (joinTopLevelTableStackTemp.size() > 0) {
+						joinTopLevelTableSet.add(joinTopLevelTableStackTemp.pop());
+					}
+
+					joinTopLevelTableStackTemp.push(ast.getChild(0).getChild(1).getText());
+					joinTopLevelTableStackTemp.push(ast.getChild(1).getChild(1).getText());
+				}
+
+				break;
+			case HiveParser.TOK_JOIN:
+				System.out.println("HiveParser.TOK_JOIN");
+				if (ast.getChild(0).getChild(1).getType() == HiveParser.TOK_SUBQUERY) {
+					String currentTableAliasName = ast.getChild(1).getChild(1).getText();
+					ArrayList<String> tableAliasNameList = new ArrayList<String>();
+
+					if (joinTopLevelTableStackTemp.size() > 0) {
+						while (joinTopLevelTableStackTemp.size() > 0) {
+							String tableName = joinTopLevelTableStackTemp.pop();
+							tableAliasNameList.add(tableName);
+						}
+					}
+
+					tableNameAliasMap.put(currentTableAliasName, tableAliasNameList);
+
+					joinTopLevelTableStackTemp.push(currentTableAliasName);
+					joinTopLevelTableSet.add(currentTableAliasName);
+				} else {
+					if (joinTopLevelTableStackTemp.size() > 0) {
+						joinTopLevelTableSet.add(joinTopLevelTableStackTemp.pop());
+					}
+
+					joinTopLevelTableStackTemp.push(ast.getChild(0).getChild(1).getText());
+					joinTopLevelTableStackTemp.push(ast.getChild(1).getChild(1).getText());
+				}
+
+				break;
 			case HiveParser.TOK_FROM:
 				String tokDbName = "";
 				String tokTableName = "";
 				if (ast.getChild(0).getChild(0).getChildCount() == 1) {
 					// 不带库名
-					tokTableName = ast.getChild(0).getChild(0).getChild(0).getText().toLowerCase();
+					tokTableName = ast.getChild(0).getChild(0).getChild(0).getText();
 				} else if (ast.getChild(0).getChild(0).getChildCount() == 2) {
 					// 带库名
-					tokDbName = ast.getChild(0).getChild(0).getChild(0).getText().toLowerCase();
-					tokTableName = tokDbName + "." + ast.getChild(0).getChild(0).getChild(1).getText().toLowerCase();
+					tokDbName = ast.getChild(0).getChild(0).getChild(0).getText();
+					tokTableName = tokDbName + "." + ast.getChild(0).getChild(0).getChild(1).getText();
 				}
 
 				if (!tokTableName.contains("tok_unionall")) {
 					// tokTablename does not contains "tok_unionall.a"
-					tokDbNameStack.push(tokDbName.toLowerCase());
-					tokTableNameStack.push(tokTableName.toLowerCase());
+					tokDbNameStack.push(tokDbName);
+					tokTableNameStack.push(tokTableName);
 				}
 
 				break;
 
 			case HiveParser.TOK_SUBQUERY:
 				if (ast.getChildCount() == 2) {
-					String tableAlias = unescapeIdentifier(ast.getChild(1).getText()).toLowerCase();
+					String tableAlias = unescapeIdentifier(ast.getChild(1).getText());
 					currentTable = tableAlias;
 
-					tableAliasMap.put(tableAlias.toLowerCase(), tableAlias);
-					
-					System.out.println("(*) "+tableAlias+" | "+tokDbNameStack.peek()+" | "+tokTableNameStack.peek());
+					tableAliasMap.put(tableAlias, tokTableNameStack.peek());
+
+					System.out.println(
+							"(*) " + tableAlias + " | " + tokDbNameStack.peek() + " | " + tokTableNameStack.peek());
 
 					if (tokDbNameStack.size() > 0) {
 						String tokDBAliasName = tokDbNameStack.peek();
@@ -159,8 +219,7 @@ public class HiveTableLineageParserBriefTemp6 {
 				}
 
 				for (int i = 0; i < aliasFieldList.size(); i++) {
-					fieldAliasMap.put(
-							unescapeIdentifier(ast.getChild(1).getText()).toLowerCase() + "." + aliasFieldList.get(i),
+					fieldAliasMap.put(unescapeIdentifier(ast.getChild(1).getText()) + "." + aliasFieldList.get(i),
 							cleanFieldList.get(i));
 				}
 				aliasFieldList.clear();
@@ -177,8 +236,8 @@ public class HiveTableLineageParserBriefTemp6 {
 								+ tabTree.getChild(1);
 				srcTables.add(new TableNode(tableName));
 				if (ast.getChild(1) != null) {
-					String alia = ast.getChild(1).getText().toLowerCase();
-					tableAliasMap.put(alia.toLowerCase(), tableName);
+					String alia = ast.getChild(1).getText();
+					tableAliasMap.put(alia, tableName);
 				}
 				break;
 			case HiveParser.TOK_SELEXPR:
@@ -205,8 +264,7 @@ public class HiveTableLineageParserBriefTemp6 {
 								"字段別名: " + tokTableNameStack.peek() + "." + aliasFieldName + " -> " + cleanFieldName);
 
 					} else if (ast.getChild(0).getChild(1).getType() == HiveParser.DOT) {
-						String tgtTableName = ast.getChild(0).getChild(1).getChild(0).getChild(0).getText()
-								.toLowerCase();
+						String tgtTableName = ast.getChild(0).getChild(1).getChild(0).getChild(0).getText();
 						cleanFieldName = ast.getChild(0).getChild(1).getChild(1).getText();
 						aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 
@@ -287,7 +345,7 @@ public class HiveTableLineageParserBriefTemp6 {
 					}
 				} else if (ast.getChild(0).getType() == HiveParser.DOT) {
 					if (ast.getChild(0).getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL) {
-						String tgtTableName = ast.getChild(0).getChild(0).getChild(0).getText().toLowerCase();
+						String tgtTableName = ast.getChild(0).getChild(0).getChild(0).getText();
 						cleanFieldName = ast.getChild(0).getChild(1).getText().toLowerCase();
 						aliasFieldName = null == aliasFieldName ? cleanFieldName : aliasFieldName;
 
@@ -481,6 +539,7 @@ public class HiveTableLineageParserBriefTemp6 {
 
 
 		String parsesql = sql71;
+		System.out.println(parsesql);
 
 //		HiveTableLineageParserBriefTemp6 hp = new HiveTableLineageParserBriefTemp6();
 
@@ -493,7 +552,7 @@ public class HiveTableLineageParserBriefTemp6 {
 		System.out.println(ast.toStringTree());
 
 		JamesUtil.printDivider();
-		HiveTableLineageParserBriefTemp6.parse(ast);
+		HiveTableLineageParserBriefTemp8.parse(ast);
 
 		JamesUtil.printDivider();
 		System.out.println(tgtTable.getTableName());
@@ -552,7 +611,7 @@ public class HiveTableLineageParserBriefTemp6 {
 		for (Entry<String, String> e : insertSelectFieldMap.entrySet()) {
 			System.out.println("key=" + e.getKey());
 
-			Set<String> s1 = SqlLineageUtil.addAliasName(e.getValue(), topLevelTableAliasMap);
+			Set<String> s1 = SqlLineageUtil.addAliasName3(e.getValue(), joinTopLevelTableSet);
 			if (null != s1) {
 				for (String i1 : s1) {
 //					System.out.println("\t" + i1);
@@ -595,5 +654,47 @@ public class HiveTableLineageParserBriefTemp6 {
 		System.out.println(tableRelation);
 
 		SqlLineageUtil.makeGexf(tableRelation);
+
+		JamesUtil.printDivider("20190411");
+		JamesUtil.printDivider("tableAliasMap");
+		JamesUtil.printStringMap(tableAliasMap);
+		JamesUtil.printDivider("joinTopLevelTableSet");
+		if (joinTopLevelTableStackTemp.size() > 0) {
+			while (joinTopLevelTableStackTemp.size() > 0) {
+				String tableName = joinTopLevelTableStackTemp.pop();
+				joinTopLevelTableSet.add(tableName);
+			}
+		}
+		JamesUtil.printSet(joinTopLevelTableSet);
+		System.out.println();
+		for (Entry<String, ArrayList<String>> entry : tableNameAliasMap.entrySet()) {
+			System.out.println(entry.getKey());
+			for (String s : entry.getValue()) {
+				System.out.println("\t" + s);
+			}
+		}
+
+		JamesUtil.printDivider("flattenTableNameAliasSet");
+		
+		List<ImmutablePair<String, String>> flattenedPairList = new ArrayList<ImmutablePair<String, String>>();
+		Map<String, String> retMap = SqlLineageUtil.flattenTableNameAliasMap(joinTopLevelTableSet, tableNameAliasMap,flattenedPairList);
+		
+		Map<String,HashSet<String>> flattenedTopLevelTableAliasMap=new HashMap<String,HashSet<String>>();
+		for(ImmutablePair<String, String> pair:flattenedPairList) {
+			if(joinTopLevelTableSet.contains(pair.getLeft())) {
+				continue;
+			}
+			
+			if(null==flattenedTopLevelTableAliasMap.get(pair.getLeft())) {
+				HashSet<String> set=new HashSet<String>();
+				set.add(pair.getRight());
+				
+				flattenedTopLevelTableAliasMap.put(pair.getLeft(), set);
+			}else {
+				flattenedTopLevelTableAliasMap.get(pair.getLeft()).add(pair.getRight());
+			}
+		}
+		
+		System.out.println(flattenedPairList);
 	}
 }
