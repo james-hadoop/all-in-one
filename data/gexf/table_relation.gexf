@@ -8,7 +8,7 @@
   <attributes class="node" mode="static">
    <attribute id="modularity_class" title="Class" type="integer"/>
   </attributes>
-  <nodes count="3">
+  <nodes count="2">
    <node id="0" label="tgtTableName">
     <attvalues>
      <attvalue for="modularity_class" value="0"/>
@@ -17,7 +17,7 @@
     <viz:position x="-200.0" y="200.0" z="0.0"/>
     <viz:size value="50.0"/>
    </node>
-   <node id="1" label="">
+   <node id="1" label="sng_mp_etldata.t_mp_article_click_table_hourly">
     <attvalues>
      <attvalue for="modularity_class" value="2"/>
     </attvalues>
@@ -25,18 +25,9 @@
     <viz:position x="-300.0" y="100.0" z="0.0"/>
     <viz:size value="50.0"/>
    </node>
-   <node id="2" label="sng_mediaaccount_app.wenda_jiesuan_flow">
-    <attvalues>
-     <attvalue for="modularity_class" value="3"/>
-    </attvalues>
-    <viz:color r="235" g="81" b="72"/>
-    <viz:position x="-300.0" y="200.0" z="0.0"/>
-    <viz:size value="50.0"/>
-   </node>
   </nodes>
-  <edges count="2">
+  <edges count="1">
    <edge id="0" source="1" target="0" type="undirected" weight="5.0"/>
-   <edge id="0" source="2" target="0" type="undirected" weight="5.0"/>
   </edges>
  </graph>
 </gexf>
