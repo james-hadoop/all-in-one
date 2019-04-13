@@ -69,6 +69,8 @@ public class HiveTableLineageParserBriefTemp9 {
 	private static Set<String> joinTopLevelTableSet = new HashSet<String>();
 	private static Map<String, ArrayList<String>> tableNameAliasMap = new HashMap<String, ArrayList<String>>();
 
+	private static String tgtTableName=null;
+	
 	// parseCurrentNode
 	private static void parseCurrentNode(ASTNode ast) {
 		if (ast.getToken() != null) {
@@ -383,7 +385,14 @@ public class HiveTableLineageParserBriefTemp9 {
 				break;
 
 			case HiveParser.TOK_INSERT_INTO:
+			    // ast.getChild(0).getChild(0).getChild(0).getText()
+			    // ast.getChild(0).getChild(0).getChild(1).getText()
+			    
+			    if(ast.getChild(0).getChild(0).getChildCount()==1) {
 				tgtTable.setTableName(ast.getChild(0).getChild(0).getChild(0).getText());
+			    }else {
+			        tgtTable.setTableName(ast.getChild(0).getChild(0).getChild(0).getText()+"."+ast.getChild(0).getChild(0).getChild(1).getText());
+			    }
 
 				ASTNode astNode = (ASTNode) ast.getParent().getChild(1);
 				int nodeCount = ast.getParent().getChild(1).getChildCount();
@@ -542,9 +551,8 @@ public class HiveTableLineageParserBriefTemp9 {
 		String sqlDemo = "INSERT INTO TABLE f_tt SELECT at_a.a_a AS f_a_a, at_b.b_b AS f_b_b, at_b.b_c AS f_b_c FROM(SELECT a_key, MAX(a_a) AS a_a, MAX(a_b) AS a_b, MAX(a_c) AS a_c FROM t_a WHERE a_c = 3 GROUP BY a_key ORDER BY a_a) at_a LEFT JOIN (SELECT b_key, MAX(b_a) AS b_a, MAX(b_b) AS b_b, MAX(b_c) AS b_c FROM t_b GROUP BY b_key ORDER BY b_b) at_b ON at_a.a_key = at_b.b_key";
 		String sql52 = "INSERT INTO TABLE t_target SELECT r_t_a.r_a_a AS f_a_a, r_t_b.r_b_b AS f_b_b, r_t_b.r_b_c AS f_b_c, r_t_a.same FROM( SELECT a_key, a_a r_a_a, a_b AS r_a_b, MAX(a_c) AS r_a_c, MAX(same) AS same FROM t_a WHERE a_a = 1 GROUP BY a_key, a_a, a_b ORDER BY a_a desc) r_t_a LEFT JOIN ( SELECT b_key, MAX(b_a) AS r_b_a, MAX(b_b) AS r_b_b, MAX(b_c) AS r_b_c, MAX(same) AS same FROM t_b GROUP BY b_key ORDER BY b_b) r_t_b ON r_t_a.a_key = r_t_b.b_key ";
 		String sql52_b = "INSERT INTO TABLE t_target SELECT r_t_a.r_a_a AS f_a_a, r_t_b.r_b_b AS f_b_b, r_t_b.r_b_c AS f_b_c, r_t_b.same FROM( SELECT a_key, a_a r_a_a, a_b AS r_a_b, MAX(a_c) AS r_a_c, MAX(same) AS same FROM t_a WHERE a_a = 1 GROUP BY a_key, a_a, a_b ORDER BY a_a desc) r_t_a LEFT JOIN ( SELECT b_key, MAX(b_a) AS r_b_a, MAX(b_b) AS r_b_b, MAX(b_c) AS r_b_c, MAX(same) AS same FROM t_b GROUP BY b_key ORDER BY b_b) r_t_b ON r_t_a.a_key = r_t_b.b_key ";
-		String sql71 = "INSERT INTO TABLE sng_mp_etldata.t_kandian_tuwen_tuji_hourly SELECT * from(SELECT 2019030919 AS tdbank_imp_date, md5(A.uin,'kd_uin') AS uin, A.rowkey, B.ex_id, A.op_type, A.time,A.os,A.imei,A.idfa,A.imsi,A.op_cnt, 0 AS pic_cnt, 2 AS TYPE FROM (SELECT uin,op_type, get_json_object(d4,'$.rowkey') AS rowkey, regexp_replace(reporttime,'[^0-9]','') AS time, get_json_object(d4,'$.os') AS os, get_json_object(d4,'$.imei') AS imei, get_json_object(d4,'$.idfa') AS idfa, get_json_object(d4,'$.imsi') AS imsi, op_cnt FROM hlw.t_dw_dc01160 WHERE tdbank_imp_date = 2019030919 AND op_type IN ('0X8007625','0X8007626') AND substr(get_json_object(d4,'$.rowkey'),15,16) IN ('26','50','51','52','53','54','55','56','57','58','59') UNION ALL SELECT md5(uin,'kd_uin') AS uin,op_type, get_json_object(extra_info,'$.rowkey') AS rowkey, time, get_json_object(extra_info,'$.os') AS os, get_json_object(extra_info,'$.imei') AS imei, get_json_object(extra_info,'$.idfa') AS idfa, get_json_object(extra_info,'$.imsi') AS imsi, 1 AS op_cnt FROM sng_mp_etldata.t_mp_article_click_table_hourly WHERE tdbank_imp_date = 2019030919 AND op_type IN ('0X800662D','0X800662E') AND substr(get_json_object(extra_info,'$.rowkey'),15,16) IN ('26','50','51','52','53','54','55','56','57','58','59')) A LEFT JOIN (SELECT rowkey,ex_id FROM sng_mp_etldata.t_article_hbase_hourly_limit WHERE src IN ('26','49','50','51','52','53','54','55','56','57','58','59') AND imp_date = 2019030919) B ON A.rowkey = B.rowkey UNION ALL SELECT 2019030919 AS tdbank_imp_date, C.uin, C.rowkey, D.ex_id, C.op_type, C.time, NULL AS os, C.imei, C.idfa, C.imsi, C.op_cnt, C.pic_cnt, 1 AS TYPE FROM (SELECT md5('',uin) AS uin, op_type, get_json_object(d4,'$.rowkey') AS rowkey, reporttime AS time, imei, get_json_object(d4,'$.idfa') AS idfa, get_json_object(d4,'$.imsi') AS imsi, op_cnt, CASE WHEN op_type = '0X8008E30' THEN size(split(get_json_object(d4,'$.one_pic_reported'),'\\\\\\}\\\\\\,\\\\\\{')) ELSE 0 END AS pic_cnt FROM hlw.t_dw_dc01160 WHERE tdbank_imp_date = 2019030919 AND op_type IN ('0X8007625', '0X8007626', '0X8008E30') AND substr(get_json_object(d4,'$.rowkey'),15,2)='49')C JOIN (SELECT rowkey,ex_id FROM sng_mp_etldata.t_article_hbase_hourly_limit WHERE src = 49 AND sub_src = '490002' AND imp_date = 2019030919)D ON C.rowkey = D.rowkey) t_outer";
 
-		String parsesql = sql71;
+		String parsesql = sqlDemo;
 		System.out.println(parsesql);
 
 		// HiveTableLineageParserBriefTemp6 hp = new HiveTableLineageParserBriefTemp6();
@@ -617,7 +625,7 @@ public class HiveTableLineageParserBriefTemp9 {
 		for (Entry<String, String> e : insertSelectFieldMap.entrySet()) {
 			System.out.println("key=" + e.getKey());
 
-			Set<String> s1 = SqlLineageUtil.addAliasName3(e.getValue(), joinTopLevelTableSet);
+			Set<String> s1 = SqlLineageUtil.addAliasName(e.getValue(), topLevelTableAliasMap);
 			if (null != s1) {
 				for (String i1 : s1) {
 					// System.out.println("\t" + i1);
@@ -655,7 +663,7 @@ public class HiveTableLineageParserBriefTemp9 {
 		JamesUtil.printDivider("ultraFieldMap");
 		JamesUtil.printStringMap(ultraFieldMap);
 
-		TableRelation tableRelation = SqlLineageUtil.generateTableRelation(ultraFieldMap, "tgtTableName");
+		TableRelation tableRelation = SqlLineageUtil.generateTableRelation(ultraFieldMap, tgtTable.getTableName());
 		JamesUtil.printDivider("tableRelation");
 		System.out.println(tableRelation);
 
@@ -671,6 +679,8 @@ public class HiveTableLineageParserBriefTemp9 {
 				joinTopLevelTableSet.add(tableName);
 			}
 		}
+		//TODO
+//		joinTopLevelTableSet.addAll(c);
 		JamesUtil.printSet(joinTopLevelTableSet);
 		JamesUtil.printDivider("tableNameAliasMap");
 		for (Entry<String, ArrayList<String>> entry : tableNameAliasMap.entrySet()) {
