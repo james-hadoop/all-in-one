@@ -18,6 +18,7 @@ import java.util.Stack;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import it.uniroma1.dis.wsngroup.gexf4j.core.EdgeType;
 import it.uniroma1.dis.wsngroup.gexf4j.core.Gexf;
@@ -45,6 +46,10 @@ public class SqlLineageUtil {
 	public static String findSrcField(String queryField, Map<String, String> fieldAliasMap) {
 		if (null == queryField || null == fieldAliasMap || 0 == fieldAliasMap.size()) {
 			return null;
+		}
+
+		if (queryField.contains(".")) {
+			return queryField;
 		}
 
 		String srcField = fieldAliasMap.get(queryField);
@@ -234,6 +239,14 @@ public class SqlLineageUtil {
 		return fieldName.substring(fieldName.indexOf(".") + 1, fieldName.length());
 	}
 
+	public static String replaceTableName(String fieldName, String tgtTableName) {
+		if (null == fieldName || null == tgtTableName || !fieldName.contains(".")) {
+			return fieldName;
+		}
+
+		return tgtTableName + "." + getFieldName(fieldName);
+	}
+
 	/**
 	 * flattenedTopLevelTableAliasMap: {C=[A, B], c=[a, b], D=[M, N], T=[M, N],
 	 * F=[M, N], G=[M, N], X=[M, N], Y=[M, N], Z=[a, b]}
@@ -246,8 +259,8 @@ public class SqlLineageUtil {
 	 */
 	public static Set<String> transformTo1stLevelAliasTableName(String fieldName,
 			Map<String, HashSet<String>> flattenedTopLevelTableAliasMap) {
-		if (null == fieldName || 0 == fieldName.length()||!fieldName.contains(".") || null == flattenedTopLevelTableAliasMap
-				|| 0 == flattenedTopLevelTableAliasMap.size()) {
+		if (null == fieldName || 0 == fieldName.length() || !fieldName.contains(".")
+				|| null == flattenedTopLevelTableAliasMap || 0 == flattenedTopLevelTableAliasMap.size()) {
 			return null;
 		}
 
@@ -418,5 +431,163 @@ public class SqlLineageUtil {
 		}
 		return null;
 
+	}
+
+	public static Map<String, ArrayList<String>> fillAliasTableName(Map<String, String> insertSelectFieldMap,
+			Map<String, String> fieldAliasMap, Set<String> topLevelTableSet) {
+		if (null == insertSelectFieldMap || null == topLevelTableSet || null == fieldAliasMap) {
+			return null;
+		}
+
+		Map<String, ArrayList<String>> finalFieldMap = new HashMap<String, ArrayList<String>>();
+
+		for (Entry<String, String> entry : insertSelectFieldMap.entrySet()) {
+			String finalFieldName = entry.getKey();
+			String fieldAliasName = SqlLineageUtil.findSrcField(entry.getValue(), fieldAliasMap);
+
+			ArrayList<String> fieldAliasList = new ArrayList<String>();
+			if (!fieldAliasName.contains(".")) {
+				for (String alias : topLevelTableSet) {
+					fieldAliasList.add(alias + "." + fieldAliasName);
+				}
+			} else {
+				fieldAliasList.add(fieldAliasName);
+			}
+
+			finalFieldMap.put(finalFieldName, fieldAliasList);
+		}
+
+		return finalFieldMap;
+	}
+
+	public static Map<String, String> transformToReferTableName(Map<String, TableLevelNode> tableLevelNodeMap,
+			Map<String, String> tableAliasMap) {
+		if (null == tableLevelNodeMap || null == tableAliasMap) {
+			return null;
+		}
+
+		Map<String, String> referTableNameMap = new HashMap<String, String>();
+
+		for (Entry<String, TableLevelNode> e : tableLevelNodeMap.entrySet()) {
+			if (2 > e.getValue().getLevel()) {
+				continue;
+			}
+
+			referTableNameMap.put(e.getKey(), e.getValue().getParent().getTableName());
+		}
+
+		return referTableNameMap;
+	}
+
+	public static Map<String, ArrayList<String>> transformToInsideLevelTableName(
+			Map<String, ArrayList<String>> finalFieldMap, Map<String, TableLevelNode> tableLevelNodeMap) {
+		if (null == tableLevelNodeMap || null == finalFieldMap) {
+			return null;
+		}
+
+		Map<String, ArrayList<String>> insideLevelFieldMap = new HashMap<String, ArrayList<String>>();
+		for (Entry<String, ArrayList<String>> e : finalFieldMap.entrySet()) {
+			ArrayList<String> fieldAliasList = e.getValue();
+
+			ArrayList<String> insideLevelTableNameList = new ArrayList<String>();
+			for (String fieldAlias : fieldAliasList) {
+
+				if (null != tableLevelNodeMap.get(getTableName(fieldAlias))
+						&& 1 == tableLevelNodeMap.get(getTableName(fieldAlias)).getLevel()) {
+					String insideLevelField = fieldAlias;
+					insideLevelTableNameList.add(insideLevelField);
+					continue;
+				}
+
+				for (Entry<String, TableLevelNode> tableLevelNode : tableLevelNodeMap.entrySet()) {
+					if (1 > tableLevelNode.getValue().getLevel()
+							|| !tableLevelNode.getValue().getParent().getTableName().equals(getTableName(fieldAlias))) {
+						break;
+					}
+
+					String insideLevelField = replaceTableName(fieldAlias, tableLevelNode.getKey());
+					insideLevelTableNameList.add(insideLevelField);
+				}
+
+			}
+
+			insideLevelFieldMap.put(e.getKey(), insideLevelTableNameList);
+		}
+
+		return insideLevelFieldMap;
+	}
+
+	private static boolean isNeedReplace(String tableAlias, Map<String, String> referTableNameMap) {
+		if (null == tableAlias || null == referTableNameMap) {
+			return false;
+		}
+
+		for (Entry<String, String> entry : referTableNameMap.entrySet()) {
+			if (entry.getValue().equals(tableAlias)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static Map<String, ArrayList<String>> transformToInsideLevelTableName2(
+			Map<String, ArrayList<String>> finalFieldMap, Map<String, String> referTableNameMap,
+			Map<String, TableLevelNode> tableLevelNodeMap) {
+		if (null == finalFieldMap || null == referTableNameMap || null == tableLevelNodeMap) {
+			return null;
+		}
+
+		Map<String, ArrayList<String>> insideLevelFieldMap = new HashMap<String, ArrayList<String>>();
+		for (Entry<String, ArrayList<String>> e : finalFieldMap.entrySet()) {
+			ArrayList<String> fieldAliasList = e.getValue();
+
+			ArrayList<String> insideLevelTableNameList = new ArrayList<String>();
+			for (String fieldAlias : fieldAliasList) {
+				if (false == isNeedReplace(getTableName(fieldAlias), referTableNameMap)) {
+					String insideLevelField = fieldAlias;
+					insideLevelTableNameList.add(insideLevelField);
+				} else {
+
+					for (Entry<String, String> entry : referTableNameMap.entrySet()) {
+						if (getTableName(fieldAlias).equals(entry.getValue())) {
+							String insideLevelField = replaceTableName(fieldAlias, entry.getKey());
+							insideLevelTableNameList.add(insideLevelField);
+						}
+					}
+				}
+			}
+
+			ArrayList<String> insideLevelTableNameListNew = new ArrayList<String>();
+			insideLevelTableNameListNew.addAll(insideLevelTableNameList);
+			insideLevelFieldMap.put(e.getKey(), insideLevelTableNameListNew);
+			insideLevelTableNameList.clear();
+		}
+
+		return insideLevelFieldMap;
+	}
+
+	public static Map<String, String> calculateFinalFieldMapping(Map<String, ArrayList<String>> insideLevelFieldMap,
+			Map<String, String> tableAliasMap, Set<String> fieldAliasSet) {
+		if (null == insideLevelFieldMap || null == tableAliasMap || null == fieldAliasSet) {
+			return null;
+		}
+
+		Map<String, String> finalFieldMapping = new HashMap<String, String>();
+
+		for (Entry<String, ArrayList<String>> entry : insideLevelFieldMap.entrySet()) {
+			ArrayList<String> insideLevelFieldList = entry.getValue();
+			for (String s : insideLevelFieldList) {
+				for (Entry<String, String> tableAliasEntry : tableAliasMap.entrySet()) {
+					if (fieldAliasSet.contains(s) && getTableName(s).equals(tableAliasEntry.getKey())) {
+						String finalFieldName = replaceTableName(s, tableAliasEntry.getValue());
+						finalFieldMapping.put(entry.getKey(), finalFieldName);
+						break;
+					}
+				}
+			}
+		}
+
+		return finalFieldMapping;
 	}
 }
