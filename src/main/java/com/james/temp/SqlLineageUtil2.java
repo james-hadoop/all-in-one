@@ -35,7 +35,7 @@ import it.uniroma1.dis.wsngroup.gexf4j.core.impl.data.AttributeListImpl;
 import it.uniroma1.dis.wsngroup.gexf4j.core.impl.viz.ColorImpl;
 import it.uniroma1.dis.wsngroup.gexf4j.core.impl.viz.PositionImpl;
 
-public class SqlLineageUtil {
+public class SqlLineageUtil2 {
 	/**
 	 * fieldAliasMap中递归查找原始字段的名称
 	 * 
@@ -443,7 +443,7 @@ public class SqlLineageUtil {
 
 		for (Entry<String, String> entry : insertSelectFieldMap.entrySet()) {
 			String finalFieldName = entry.getKey();
-			String fieldAliasName = SqlLineageUtil.findSrcField(entry.getValue(), fieldAliasMap);
+			String fieldAliasName = SqlLineageUtil2.findSrcField(entry.getValue(), fieldAliasMap);
 
 			ArrayList<String> fieldAliasList = new ArrayList<String>();
 			if (!fieldAliasName.contains(".")) {
