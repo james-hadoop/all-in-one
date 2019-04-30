@@ -1,6 +1,10 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <gexf xmlns="http://www.gexf.net/1.2draft" xmlns:viz="http://www.gexf.net/1.2draft/viz" version="1.2">
+<<<<<<< HEAD
  <meta lastmodifieddate="2019-04-21">
+=======
+ <meta lastmodifieddate="2019-04-13">
+>>>>>>> 1fda2e63ec305eef8862a045d46740aad9e06939
   <creator>james</creator>
   <description>TableRelation</description>
  </meta>
@@ -8,7 +12,11 @@
   <attributes class="node" mode="static">
    <attribute id="modularity_class" title="Class" type="integer"/>
   </attributes>
+<<<<<<< HEAD
   <nodes count="5">
+=======
+  <nodes count="4">
+>>>>>>> 1fda2e63ec305eef8862a045d46740aad9e06939
    <node id="0" label="sng_mp_etldata.t_kandian_account_income_detail_daily_new">
     <attvalues>
      <attvalue for="modularity_class" value="0"/>
@@ -25,7 +33,11 @@
     <viz:position x="-300.0" y="100.0" z="0.0"/>
     <viz:size value="50.0"/>
    </node>
+<<<<<<< HEAD
    <node id="2" label="sng_mp_etldata.account_wenda_uv_daily">
+=======
+   <node id="2" label="sng_mp_cdbdata.t_pub_account_daily">
+>>>>>>> 1fda2e63ec305eef8862a045d46740aad9e06939
     <attvalues>
      <attvalue for="modularity_class" value="3"/>
     </attvalues>
@@ -33,7 +45,11 @@
     <viz:position x="-300.0" y="200.0" z="0.0"/>
     <viz:size value="50.0"/>
    </node>
+<<<<<<< HEAD
    <node id="3" label="sng_mp_etldata.rich_puin_level">
+=======
+   <node id="3" label="sng_mp_etldata.account_wenda_uv_daily">
+>>>>>>> 1fda2e63ec305eef8862a045d46740aad9e06939
     <attvalues>
      <attvalue for="modularity_class" value="4"/>
     </attvalues>
@@ -41,6 +57,7 @@
     <viz:position x="-300.0" y="300.0" z="0.0"/>
     <viz:size value="50.0"/>
    </node>
+<<<<<<< HEAD
    <node id="4" label="sng_publicaccount_msgclickreport.tdw_media_info">
     <attvalues>
      <attvalue for="modularity_class" value="5"/>
@@ -55,6 +72,13 @@
    <edge id="0" source="2" target="0" type="undirected" weight="5.0"/>
    <edge id="0" source="3" target="0" type="undirected" weight="5.0"/>
    <edge id="0" source="4" target="0" type="undirected" weight="5.0"/>
+=======
+  </nodes>
+  <edges count="3">
+   <edge id="0" source="1" target="0" type="undirected" weight="5.0"/>
+   <edge id="0" source="2" target="0" type="undirected" weight="5.0"/>
+   <edge id="0" source="3" target="0" type="undirected" weight="5.0"/>
+>>>>>>> 1fda2e63ec305eef8862a045d46740aad9e06939
   </edges>
  </graph>
 </gexf>
